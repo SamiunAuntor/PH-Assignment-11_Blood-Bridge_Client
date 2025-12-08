@@ -1,13 +1,13 @@
 import React from "react";
-import loginImage from "../assets/login-register-photo.jpg";
+import loginImage from "../assets/loginPhoto.jpg";
 import { FcGoogle } from "react-icons/fc";
-import { Link } from "react-router"; 
+import { Link } from "react-router";
 
 const LoginPage = () => {
     return (
         <div className="min-h-screen flex flex-col md:flex-row">
             {/* Left Side - Image */}
-            <div className="w-full md:w-7/10 h-64 md:h-auto">
+            <div className="w-full md:w-7/10 h-64 md:h-auto hidden md:block">
                 <img
                     src={loginImage}
                     alt="Login"
@@ -15,10 +15,11 @@ const LoginPage = () => {
                 />
             </div>
 
-            {/* Right Side - Form */}
+
+            {/* Right Side - Login Form */}
             <div className="w-full md:w-3/10 flex items-center justify-center p-6 md:p-12 bg-white">
                 <div className="w-full max-w-md">
-                    <h2 className="text-3xl font-bold text-red-600 mb-6 text-center md:text-left">
+                    <h2 className="text-3xl font-bold text-red-600 mb-6 text-center">
                         Login
                     </h2>
 
@@ -63,7 +64,7 @@ const LoginPage = () => {
                     <div className="flex justify-center">
                         <button
                             type="button"
-                            className="flex items-center justify-center gap-2 px-4 py-3 border rounded-md hover:bg-red-100 transition-colors"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 border rounded-md hover:bg-red-100 transition-colors"
                         >
                             <FcGoogle size={24} />
                             Continue with Google
@@ -77,7 +78,7 @@ const LoginPage = () => {
                             to="/register"
                             className="text-red-600 font-medium hover:underline"
                         >
-                            Sign Up
+                            Register
                         </Link>
                     </p>
                 </div>
