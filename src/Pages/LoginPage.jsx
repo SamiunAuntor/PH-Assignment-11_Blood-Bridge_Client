@@ -5,7 +5,7 @@ import { Link } from "react-router";
 
 const LoginPage = () => {
     return (
-        <div className="min-h-screen flex flex-col md:flex-row">
+        <div className="mt-10 mb-100 flex flex-col md:flex-row">
             {/* Left Side - Image */}
             <div className="w-full md:w-7/10 h-64 md:h-auto hidden md:block">
                 <img
@@ -19,7 +19,7 @@ const LoginPage = () => {
             {/* Right Side - Login Form */}
             <div className="w-full md:w-3/10 flex items-center justify-center p-6 md:p-12 bg-white">
                 <div className="w-full max-w-md">
-                    <h2 className="text-3xl font-bold text-red-600 mb-6 text-center">
+                    <h2 className="text-3xl font-bold text-red-600 mb-6">
                         Login
                     </h2>
 
