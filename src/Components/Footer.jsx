@@ -57,7 +57,7 @@ const Footer = () => {
                             <HiPhone className="text-2xl text-red-700" />
                             <div>
                                 <p className="font-medium">Phone</p>
-                                <p className="text-gray-600 text-sm">+880 1XX-XXX-XXXX</p>
+                                <p className="text-gray-600 text-sm">+880 122-754-6576</p>
                             </div>
                         </div>
 

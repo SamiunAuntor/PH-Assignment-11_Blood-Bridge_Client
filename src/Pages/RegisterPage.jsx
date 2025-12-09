@@ -2,14 +2,15 @@ import React, { useEffect, useState } from "react";
 import registerImage from "../assets/loginPhoto.jpg";
 import { Link, useNavigate } from "react-router";
 import useAuth from "../Hooks/useAuth";
-import toast, { Toaster } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { updateProfile } from "firebase/auth";
-import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+import { HiEye, HiEyeOff } from "react-icons/hi";
 import { uploadImageToImgBB } from "../Utilities/UploadImage";
+import { showToast } from "../Utilities/ToastMessage";
+import Loading from "../Components/Loading";
 
 const RegisterPage = () => {
-    const { registerUserWithEmailPassword } = useAuth();
+    const { registerUserWithEmailPassword, loading } = useAuth();
     const { register, handleSubmit, watch, formState: { errors }, reset } = useForm();
     const navigate = useNavigate();
 
@@ -19,11 +20,18 @@ const RegisterPage = () => {
     const [showPass, setShowPass] = useState(false);
     const [showConfirmPass, setShowConfirmPass] = useState(false);
     const [avatarFile, setAvatarFile] = useState(null);
+    const [pageLoading, setPageLoading] = useState(true);
 
     const selectedDivision = watch("division");
     const selectedDistrict = watch("district");
 
-    // Load JSON files
+    // Ensure minimum loading time
+    useEffect(() => {
+        const timer = setTimeout(() => setPageLoading(false), 500);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Fetch location data from public folder
     useEffect(() => {
         fetch("/divisions.json").then(res => res.json()).then(setDivisions);
         fetch("/districts.json").then(res => res.json()).then(setDistricts);
@@ -34,66 +42,65 @@ const RegisterPage = () => {
     const filteredUpazilas = upazilas.filter(u => u.district_id === selectedDistrict);
 
     const handleRegister = async (data) => {
-        const { email, password, name, bloodGroup, district, upazila } = data;
+        const { email, password, name } = data;
 
         try {
             const { user } = await registerUserWithEmailPassword(email, password);
 
-            // Upload avatar asynchronously
-            let avatarURL = "";
-            if (avatarFile) {
-                toast.loading("Uploading avatar...", { id: "avatarUpload" });
-                avatarURL = await uploadImageToImgBB(avatarFile);
-                toast.dismiss("avatarUpload");
-            }
-
-            // Update Firebase user profile
-            await updateProfile(user, {
-                displayName: name,
-                photoURL: avatarURL || null,
-            });
-
-            toast.success(`Welcome, ${name}!`, {
-                duration: 3000,
-                position: 'top-center',
-                style: {
-                    padding: '16px 24px',
-                    fontSize: '16px',
-                    background: '#fee2e2',
-                    color: '#b91c1c',
-                    fontWeight: 'bold',
-                },
-            });
-
+            // Show welcome toast and navigate to home
+            showToast(`Welcome, ${name}!`, "success");
             reset();
             setAvatarFile(null);
+            navigate("/");
 
-            // Redirect after short delay
-            setTimeout(() => {
-                navigate("/");
-            }, 1000);
+            // Update user profile in the background
+            (async () => {
+                let avatarURL = null;
+                if (avatarFile) {
+                    try {
+                        avatarURL = await uploadImageToImgBB(avatarFile);
+                    } catch (uploadErr) {
+                        console.error("Avatar upload failed:", uploadErr);
+                    }
+                }
+
+                try {
+                    await updateProfile(user, {
+                        displayName: name,
+                        photoURL: avatarURL || null,
+                    });
+                    console.log("User profile updated successfully");
+                } catch (profileErr) {
+                    console.error("Profile update failed:", profileErr);
+                }
+            })();
 
         } catch (err) {
-            toast.error(err.message, { position: 'top-center' });
+            showToast(err.message, "error");
         }
     };
 
+    // Early return for loading, after hooks
+    if (loading || pageLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-white">
+                <Loading />
+            </div>
+        );
+    }
+
     return (
         <div className="my-0 flex flex-col md:flex-row">
-
-            {/* Image */}
             <div className="w-full md:w-7/10 h-64 md:h-auto hidden md:block">
                 <img src={registerImage} alt="Register" className="w-full h-full object-contain" />
             </div>
 
-            {/* Form */}
             <div className="w-full md:w-3/10 flex items-center justify-center p-6 md:p-12 bg-white">
                 <div className="w-full max-w-md">
                     <h2 className="text-3xl font-bold text-red-600 mb-6">Register</h2>
 
                     <form onSubmit={handleSubmit(handleRegister)} className="flex flex-col gap-4">
 
-                        {/* Email */}
                         <input
                             type="email"
                             placeholder="Email"
@@ -102,7 +109,6 @@ const RegisterPage = () => {
                         />
                         {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
 
-                        {/* Name */}
                         <input
                             type="text"
                             placeholder="Full Name"
@@ -111,7 +117,6 @@ const RegisterPage = () => {
                         />
                         {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
 
-                        {/* Avatar */}
                         <div>
                             <label className="text-sm font-medium">Choose Avatar (optional)</label>
                             <input
@@ -121,7 +126,6 @@ const RegisterPage = () => {
                             />
                         </div>
 
-                        {/* Blood Group */}
                         <select
                             className="px-4 py-3 border-2 border-red-300 focus:border-red-500 rounded-md outline-none"
                             {...register("bloodGroup", { required: "Blood group is required" })}
@@ -133,7 +137,6 @@ const RegisterPage = () => {
                         </select>
                         {errors.bloodGroup && <p className="text-red-500 text-sm">{errors.bloodGroup.message}</p>}
 
-                        {/* Division */}
                         <select
                             className="px-4 py-3 border-2 border-red-300 focus:border-red-500 rounded-md outline-none"
                             {...register("division", { required: "Division is required" })}
@@ -145,7 +148,6 @@ const RegisterPage = () => {
                         </select>
                         {errors.division && <p className="text-red-500 text-sm">{errors.division.message}</p>}
 
-                        {/* District */}
                         <select
                             className="px-4 py-3 border-2 border-red-300 focus:border-red-500 rounded-md outline-none"
                             {...register("district", { required: "District is required" })}
@@ -157,7 +159,6 @@ const RegisterPage = () => {
                             ))}
                         </select>
 
-                        {/* Upazila */}
                         <select
                             className="px-4 py-3 border-2 border-red-300 focus:border-red-500 rounded-md outline-none"
                             {...register("upazila", { required: "Upazila is required" })}
@@ -169,7 +170,6 @@ const RegisterPage = () => {
                             ))}
                         </select>
 
-                        {/* Password */}
                         <div className="relative">
                             <input
                                 type={showPass ? "text" : "password"}
@@ -182,13 +182,12 @@ const RegisterPage = () => {
                             />
                             <span
                                 onClick={() => setShowPass(!showPass)}
-                                className="absolute right-3 top-3 cursor-pointer text-gray-600"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-600"
                             >
-                                {showPass ? <FaRegEyeSlash size={20} /> : <FaRegEye size={20} />}
+                                {showPass ? <HiEyeOff size={22} /> : <HiEye size={22} />}
                             </span>
                         </div>
 
-                        {/* Confirm Password */}
                         <div className="relative">
                             <input
                                 type={showConfirmPass ? "text" : "password"}
@@ -202,13 +201,12 @@ const RegisterPage = () => {
                             />
                             <span
                                 onClick={() => setShowConfirmPass(!showConfirmPass)}
-                                className="absolute right-3 top-3 cursor-pointer text-gray-600"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-600"
                             >
-                                {showConfirmPass ? <FaRegEyeSlash size={20} /> : <FaRegEye size={20} />}
+                                {showConfirmPass ? <HiEyeOff size={22} /> : <HiEye size={22} />}
                             </span>
                         </div>
 
-                        {/* Submit */}
                         <button
                             type="submit"
                             className="px-4 py-3 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700"
@@ -225,9 +223,6 @@ const RegisterPage = () => {
                     </p>
                 </div>
             </div>
-
-            {/* Toaster for toast messages */}
-            <Toaster />
         </div>
     );
 };

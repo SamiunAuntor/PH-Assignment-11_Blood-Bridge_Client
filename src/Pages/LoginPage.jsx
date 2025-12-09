@@ -1,106 +1,119 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import loginImage from "../assets/loginPhoto.jpg";
 import { Link, useNavigate } from "react-router";
 import useAuth from "../Hooks/useAuth";
-import toast, { Toaster } from "react-hot-toast";
+import { useForm } from "react-hook-form";
+import { HiEye, HiEyeOff } from "react-icons/hi";
+import { showToast } from "../Utilities/ToastMessage";
+import Loading from "../Components/Loading";
+
 
 const LoginPage = () => {
-    const { loginUserWithEmailPassword } = useAuth();
+    const { loginUserWithEmailPassword, user, loading } = useAuth(); // get current user
     const navigate = useNavigate();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [showPass, setShowPass] = useState(false);
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        if (!email || !password) {
-            toast.error("Please fill in all fields");
-            return;
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
+
+
+    // State to manage minimum loading time
+    const [pageLoading, setPageLoading] = useState(true);
+
+    // Ensure loading spinner shows for at least 0.5 seconds
+    useEffect(() => {
+        const timer = setTimeout(() => setPageLoading(false), 500);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Show loading spinner if auth state is loading or minimum time not met
+    if (loading || pageLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-white">
+                <Loading />
+            </div>
+        );
+    }
+
+
+
+
+
+    const getFriendlyErrorMessage = (error) => {
+        if (!error || !error.code) return "Something went wrong. Please try again.";
+        switch (error.code) {
+            case "auth/invalid-credential": return "Invalid credentials. Please try again.";
+            default: return error.message || "Login failed. Please try again.";
         }
+    };
 
-        setLoading(true);
+    const onSubmit = async (data) => {
         try {
-            await loginUserWithEmailPassword(email, password);
-            toast.success("Login successful!");
-            navigate("/"); // Redirect to dashboard
-        } catch (error) {
-            console.error(error);
-            toast.error(error.message || "Login failed. Please try again.");
-        } finally {
-            setLoading(false);
+            await loginUserWithEmailPassword(data.email, data.password);
+
+            // Show toast with user's displayName
+            const name = user?.displayName || data.email.split("@")[0];
+            showToast(`Welcome back, ${name}!`, "success");
+
+            navigate("/"); // redirect to home page after login
+        } catch (err) {
+            showToast(getFriendlyErrorMessage(err), "error");
         }
     };
 
     return (
-        <div className="mt-5 mb-20 flex flex-col md:flex-row min-h-screen">
-            <Toaster position="top-right" reverseOrder={false} />
-
-            {/* Left Side - Image */}
+        <div className="flex flex-col md:flex-row min-h-screen">
             <div className="w-full md:w-7/10 h-64 md:h-auto hidden md:block">
-                <img
-                    src={loginImage}
-                    alt="Login"
-                    className="w-full h-full object-cover rounded-l-lg"
-                />
+                <img src={loginImage} alt="Login" className="w-full h-full object-contain" />
             </div>
 
-            {/* Right Side - Login Form */}
-            <div className="w-full md:w-3/10 flex items-center justify-center p-6 md:p-12 bg-white rounded-r-lg shadow-lg">
+            <div className="w-full md:w-3/10 flex items-center justify-center p-6 md:p-12 bg-white">
                 <div className="w-full max-w-md">
                     <h2 className="text-3xl font-bold text-red-600 mb-6">Login</h2>
 
-                    <form className="flex flex-col gap-4" onSubmit={handleLogin}>
-                        <input
-                            type="email"
-                            placeholder="Email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-300"
-                        />
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-300"
-                        />
+                    <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
+                        <div>
+                            <input
+                                type="email"
+                                placeholder="Email"
+                                {...register("email", { required: "Email is required" })}
+                                className={`w-full px-4 py-3 border-2 rounded-md outline-none text-gray-700 ${errors.email ? "border-red-500 focus:border-red-500" : "border-red-300 focus:border-red-500"}`}
+                            />
+                            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+                        </div>
+
+                        <div className="relative">
+                            <input
+                                type={showPass ? "text" : "password"}
+                                placeholder="Password"
+                                {...register("password", { required: "Password is required" })}
+                                className={`w-full px-4 py-3 border-2 rounded-md outline-none text-gray-700 ${errors.password ? "border-red-500 focus:border-red-500" : "border-red-300 focus:border-red-500"}`}
+                            />
+                            <span
+                                onClick={() => setShowPass(!showPass)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-600"
+                            >
+                                {showPass ? <HiEyeOff size={22} /> : <HiEye size={22} />}
+                            </span>
+                            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
+                        </div>
 
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={isSubmitting}
                             className="px-4 py-3 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
                         >
-                            {loading ? "Logging in..." : "Login"}
+                            {isSubmitting ? "Logging in..." : "Login"}
                         </button>
                     </form>
 
-                    {/* Forgot password */}
-                    <div className="text-center md:text-right mt-2">
-                        <Link
-                            to="/forgot-password"
-                            className="text-red-600 hover:underline text-sm"
-                        >
-                            Forgot Password?
-                        </Link>
+                    <div className="mt-6 text-center">
+                        <p className="mt-4 text-center text-gray-600 text-sm">
+                            Don't have an account?{" "}
+                            <Link to="/register" className="text-red-600 font-medium hover:underline">
+                                Register
+                            </Link>
+                        </p>
                     </div>
-
-                    {/* Divider */}
-                    <div className="flex items-center my-4">
-                        <hr className="flex-grow border-gray-300" />
-                        <span className="mx-2 text-gray-500 text-sm">or</span>
-                        <hr className="flex-grow border-gray-300" />
-                    </div>
-
-                    {/* Register link */}
-                    <p className="mt-4 text-center text-gray-600 text-sm">
-                        Don't have an account?{" "}
-                        <Link
-                            to="/register"
-                            className="text-red-600 font-medium hover:underline"
-                        >
-                            Register
-                        </Link>
-                    </p>
                 </div>
             </div>
         </div>
