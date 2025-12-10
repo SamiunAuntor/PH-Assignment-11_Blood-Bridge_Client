@@ -4,7 +4,7 @@ import logo from "../assets/logo.png";
 import defaultUserAvatar from "../assets/user.png";
 import useAuth from "../Hooks/useAuth";
 import { BiSolidDonateBlood } from "react-icons/bi";
-import { FaDonate } from "react-icons/fa";
+import { FaDonate, FaHome } from "react-icons/fa";
 
 const NavBar = () => {
   const { user, logoutUser } = useAuth();
@@ -37,6 +37,15 @@ const NavBar = () => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex md:items-center md:gap-6">
+          {/* Home */}
+          <NavLink
+            to="/"
+            className="text-gray-700 bg-white hover:text-red-600 p-2 rounded-md"
+            title="Home"
+          >
+            <FaHome size={26} />
+          </NavLink>
+
           {/* Donation Requests */}
           <NavLink
             to="/donation-requests"
@@ -114,6 +123,15 @@ const NavBar = () => {
       {/* Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden flex flex-col w-full bg-red-100 px-6 pb-4 gap-3 items-center">
+          {/* Home */}
+          <NavLink
+            to="/"
+            className="w-full text-center p-2 rounded-md text-gray-700 hover:bg-red-50 hover:text-red-600"
+            onClick={() => setMenuOpen(false)}
+          >
+            Home
+          </NavLink>
+
           <NavLink
             to="/donation-requests"
             className="w-full text-center p-2 rounded-md text-gray-700 hover:bg-red-50 hover:text-red-600"

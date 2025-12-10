@@ -3,6 +3,7 @@ import useAuth from '../Hooks/useAuth';
 import Loading from '../Components/Loading';
 import Banner from '../Components/Banner';
 import ContactUsSection from '../Components/ContactUsSection';
+import FeaturedSection from '../Components/FeaturedSection';
 
 
 
@@ -32,6 +33,7 @@ const HomePage = () => {
     return (
         <div className='min-h-screen'>
             <Banner></Banner>
+            <FeaturedSection></FeaturedSection>
             <ContactUsSection></ContactUsSection>
         </div>
     );
