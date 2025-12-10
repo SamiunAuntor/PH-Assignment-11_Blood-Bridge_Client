@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import useAuth from '../Hooks/useAuth';
 import Loading from '../Components/Loading';
 import Banner from '../Components/Banner';
+import ContactUsSection from '../Components/ContactUsSection';
 
 
 
@@ -31,6 +32,7 @@ const HomePage = () => {
     return (
         <div className='min-h-screen'>
             <Banner></Banner>
+            <ContactUsSection></ContactUsSection>
         </div>
     );
 };
