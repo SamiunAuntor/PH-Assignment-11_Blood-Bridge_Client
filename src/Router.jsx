@@ -3,6 +3,7 @@ import HomeLayout from "./Layouts/HomeLayout";
 import HomePage from "./Pages/HomePage";
 import LoginPage from "./Pages/LoginPage";
 import RegisterPage from "./Pages/RegisterPage";
+import Error404Page from "./Pages/Error404Page";
 
 const router = createBrowserRouter([
     {
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
         ]
 
     },
+    {
+        path: "*",
+        element: <Error404Page></Error404Page>
+    }
 ])
 
 export default router;

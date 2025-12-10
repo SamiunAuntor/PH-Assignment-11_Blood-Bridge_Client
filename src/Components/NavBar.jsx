@@ -167,7 +167,7 @@ const NavBar = () => {
                 <div className="w-full flex flex-col mt-2">
                   <Link
                     to="/dashboard"
-                    className="px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
+                    className="px-4 py-2 text-gray-700 text-center hover:bg-red-50 hover:text-red-600"
                     onClick={() => { setMenuOpen(false); setUserMenuOpen(false); }}
                   >
                     Dashboard
