@@ -23,7 +23,7 @@ const RegisterPage = () => {
     const [showConfirmPass, setShowConfirmPass] = useState(false);
     const [avatarFile, setAvatarFile] = useState(null);
     const [pageLoading, setPageLoading] = useState(true);
-    const [formLoading, setFormLoading] = useState(false); // local form loading
+    const [formLoading, setFormLoading] = useState(false);
 
     const selectedDivision = watch("division");
     const selectedDistrict = watch("district");
