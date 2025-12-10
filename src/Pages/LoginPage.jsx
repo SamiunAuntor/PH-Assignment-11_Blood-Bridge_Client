@@ -9,7 +9,7 @@ import Loading from "../Components/Loading";
 
 
 const LoginPage = () => {
-    const { loginUserWithEmailPassword, user, loading } = useAuth(); // get current user
+    const { loginUserWithEmailPassword, user, loading } = useAuth();
     const navigate = useNavigate();
     const [showPass, setShowPass] = useState(false);
 
@@ -30,14 +30,15 @@ const LoginPage = () => {
         window.scrollTo(0, 0);
     }, []);
 
-    // Show loading spinner if auth state is loading or minimum time not met
-    if (loading || pageLoading) {
+    // Show loading spinner only for initial page load
+    if (pageLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-white">
                 <Loading />
             </div>
         );
     }
+
 
 
 

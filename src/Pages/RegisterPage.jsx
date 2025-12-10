@@ -10,12 +10,8 @@ import { showToast } from "../Utilities/ToastMessage";
 import Loading from "../Components/Loading";
 import useAxios from "../Hooks/useAxios";
 
-
-
 const RegisterPage = () => {
-
     const axios = useAxios();
-
     const { registerUserWithEmailPassword, loading } = useAuth();
     const { register, handleSubmit, watch, formState: { errors }, reset } = useForm();
     const navigate = useNavigate();
@@ -27,6 +23,7 @@ const RegisterPage = () => {
     const [showConfirmPass, setShowConfirmPass] = useState(false);
     const [avatarFile, setAvatarFile] = useState(null);
     const [pageLoading, setPageLoading] = useState(true);
+    const [formLoading, setFormLoading] = useState(false); // local form loading
 
     const selectedDivision = watch("division");
     const selectedDistrict = watch("district");
@@ -37,13 +34,12 @@ const RegisterPage = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    // Ensure we are on top after redirected to register page
+    // Scroll to top
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
-
-    // Fetch location data from public folder
+    // Fetch location data
     useEffect(() => {
         fetch("/divisions.json").then(res => res.json()).then(setDivisions);
         fetch("/districts.json").then(res => res.json()).then(setDistricts);
@@ -59,61 +55,56 @@ const RegisterPage = () => {
         try {
             const { user } = await registerUserWithEmailPassword(email, password);
 
-            // Show welcome toast and navigate to home
+            // Navigate immediately
             showToast(`Welcome, ${name}!`, "success");
             reset();
             setAvatarFile(null);
             navigate("/");
 
-            // Background profile update : Firebase profile + backend
+            // Background updates
             (async () => {
                 try {
                     let avatarURL = null;
                     if (avatarFile) {
-                        try {
-                            avatarURL = await uploadImageToImgBB(avatarFile);
-                        } catch (uploadErr) {
-                            console.error("Avatar upload failed:", uploadErr);
-                        }
+                        try { avatarURL = await uploadImageToImgBB(avatarFile); }
+                        catch (uploadErr) { console.error("Avatar upload failed:", uploadErr); }
                     }
 
-                    // Update Firebase profile silently
-                    await updateProfile(user, {
-                        displayName: name,
-                        photoURL: avatarURL || null,
-                    });
-
-                    // Prepare data for backend
-                    const userData = {
+                    await updateProfile(user, { displayName: name, photoURL: avatarURL || null });
+                    await axios.post("/register-user", {
                         name,
                         email,
                         bloodGroup: data.bloodGroup,
                         district: data.district,
                         upazila: data.upazila,
-                        avatar: avatarURL || null,
-                    };
-
-                    // Send POST request to backend silently
-                    await axios.post("/register-user", userData);
-
+                        avatar: avatarURL || null
+                    });
                 } catch (err) {
                     console.error("Background update failed:", err);
                 }
             })();
 
         } catch (err) {
-            showToast(err.message, "error");
+            // Conditional toast for already registered user
+            if (err.message.includes("email-already-in-use")) {
+                showToast("This email is already registered. Please login.", "error");
+            } else {
+                showToast("Registration failed. Please try again.", "error");
+            }
+        } finally {
+            setFormLoading(false);
         }
     };
 
-    // Early return for loading, after hooks
-    if (loading || pageLoading) {
+    // Early return for loading
+    if (pageLoading || formLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-white">
                 <Loading />
             </div>
         );
     }
+
 
     return (
         <div className="my-0 flex flex-col md:flex-row">
@@ -184,6 +175,7 @@ const RegisterPage = () => {
                                 <option key={dist.id} value={dist.id}>{dist.name}</option>
                             ))}
                         </select>
+                        {errors.district && <p className="text-red-500 text-sm">{errors.district.message}</p>}
 
                         <select
                             className="px-4 py-3 border-2 border-red-300 focus:border-red-500 rounded-md outline-none"
@@ -195,6 +187,7 @@ const RegisterPage = () => {
                                 <option key={upa.id} value={upa.id}>{upa.name}</option>
                             ))}
                         </select>
+                        {errors.upazila && <p className="text-red-500 text-sm">{errors.upazila.message}</p>}
 
                         <div className="relative">
                             <input
@@ -212,6 +205,7 @@ const RegisterPage = () => {
                             >
                                 {showPass ? <HiEyeOff size={22} /> : <HiEye size={22} />}
                             </span>
+                            {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
                         </div>
 
                         <div className="relative">
@@ -231,6 +225,7 @@ const RegisterPage = () => {
                             >
                                 {showConfirmPass ? <HiEyeOff size={22} /> : <HiEye size={22} />}
                             </span>
+                            {errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>}
                         </div>
 
                         <button
