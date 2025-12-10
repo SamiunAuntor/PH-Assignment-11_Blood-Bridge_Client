@@ -76,7 +76,7 @@ const NavBar = () => {
                 <img
                   src={user.photoURL || defaultUserAvatar}
                   alt="User Avatar"
-                  className="h-10 w-10 rounded-full object-cover p-0.5 border-2 border-red-500"
+                  className="h-10 w-10 bg-white rounded-full object-cover p-0.5 border-2 border-red-500"
                 />
               </button>
 
@@ -159,7 +159,7 @@ const NavBar = () => {
                 <img
                   src={user.photoURL || defaultUserAvatar}
                   alt="User Avatar"
-                  className="h-10 w-10 rounded-full object-cover p-0.5 border-2 border-red-500"
+                  className="h-10 w-10 bg-white rounded-full object-cover p-0.5 border-2 border-red-500"
                 />
               </button>
 

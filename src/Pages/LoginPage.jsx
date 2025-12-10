@@ -25,6 +25,11 @@ const LoginPage = () => {
         return () => clearTimeout(timer);
     }, []);
 
+    // Ensure we are on top after redirected to loginn page
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     // Show loading spinner if auth state is loading or minimum time not met
     if (loading || pageLoading) {
         return (

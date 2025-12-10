@@ -8,8 +8,14 @@ import { HiEye, HiEyeOff } from "react-icons/hi";
 import { uploadImageToImgBB } from "../Utilities/UploadImage";
 import { showToast } from "../Utilities/ToastMessage";
 import Loading from "../Components/Loading";
+import useAxios from "../Hooks/useAxios";
+
+
 
 const RegisterPage = () => {
+
+    const axios = useAxios();
+
     const { registerUserWithEmailPassword, loading } = useAuth();
     const { register, handleSubmit, watch, formState: { errors }, reset } = useForm();
     const navigate = useNavigate();
@@ -30,6 +36,12 @@ const RegisterPage = () => {
         const timer = setTimeout(() => setPageLoading(false), 500);
         return () => clearTimeout(timer);
     }, []);
+
+    // Ensure we are on top after redirected to register page
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
 
     // Fetch location data from public folder
     useEffect(() => {
@@ -53,25 +65,39 @@ const RegisterPage = () => {
             setAvatarFile(null);
             navigate("/");
 
-            // Update user profile in the background
+            // Background profile update : Firebase profile + backend
             (async () => {
-                let avatarURL = null;
-                if (avatarFile) {
-                    try {
-                        avatarURL = await uploadImageToImgBB(avatarFile);
-                    } catch (uploadErr) {
-                        console.error("Avatar upload failed:", uploadErr);
-                    }
-                }
-
                 try {
+                    let avatarURL = null;
+                    if (avatarFile) {
+                        try {
+                            avatarURL = await uploadImageToImgBB(avatarFile);
+                        } catch (uploadErr) {
+                            console.error("Avatar upload failed:", uploadErr);
+                        }
+                    }
+
+                    // Update Firebase profile silently
                     await updateProfile(user, {
                         displayName: name,
                         photoURL: avatarURL || null,
                     });
-                    console.log("User profile updated successfully");
-                } catch (profileErr) {
-                    console.error("Profile update failed:", profileErr);
+
+                    // Prepare data for backend
+                    const userData = {
+                        name,
+                        email,
+                        bloodGroup: data.bloodGroup,
+                        district: data.district,
+                        upazila: data.upazila,
+                        avatar: avatarURL || null,
+                    };
+
+                    // Send POST request to backend silently
+                    await axios.post("/register-user", userData);
+
+                } catch (err) {
+                    console.error("Background update failed:", err);
                 }
             })();
 

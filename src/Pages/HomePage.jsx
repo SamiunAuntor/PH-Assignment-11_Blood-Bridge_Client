@@ -9,6 +9,10 @@ import FeaturedSection from '../Components/FeaturedSection';
 
 
 const HomePage = () => {
+    // Ensure we are on top after redirected to this page
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     const { loading } = useAuth();
 
