@@ -5,6 +5,7 @@ import defaultUserAvatar from "../assets/user.png";
 import useAuth from "../Hooks/useAuth";
 import { BiSolidDonateBlood } from "react-icons/bi";
 import { FaDonate, FaHome } from "react-icons/fa";
+import { Tooltip } from "react-tooltip";
 
 const NavBar = () => {
   const { user, logoutUser } = useAuth();
@@ -37,11 +38,13 @@ const NavBar = () => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex md:items-center md:gap-6">
+
           {/* Home */}
           <NavLink
             to="/"
+            data-tooltip-id="navTip"
+            data-tooltip-content="Home"
             className="text-gray-700 bg-white hover:text-red-600 p-2 rounded-md"
-            title="Home"
           >
             <FaHome size={26} />
           </NavLink>
@@ -49,8 +52,9 @@ const NavBar = () => {
           {/* Donation Requests */}
           <NavLink
             to="/donation-requests"
+            data-tooltip-id="navTip"
+            data-tooltip-content="Donation Requests"
             className="text-gray-700 bg-white hover:text-red-600 p-2 rounded-md"
-            title="Donation Requests"
           >
             <BiSolidDonateBlood size={28} />
           </NavLink>
@@ -59,13 +63,15 @@ const NavBar = () => {
           {user && (
             <NavLink
               to="/funding"
+              data-tooltip-id="navTip"
+              data-tooltip-content="Funding"
               className="text-gray-700 bg-white hover:text-red-600 p-2 rounded-md"
-              title="Funding"
             >
               <FaDonate size={26} />
             </NavLink>
           )}
 
+          {/* User Menu / Auth Buttons */}
           {user ? (
             <div className="relative">
               {/* User Avatar */}
@@ -80,12 +86,11 @@ const NavBar = () => {
                 />
               </button>
 
-
               {/* Dropdown */}
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-md border border-red-200 z-50 flex flex-col">
                   <Link
-                    to="/"
+                    to="/dashboard"
                     className="px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
                     onClick={() => setUserMenuOpen(false)}
                   >
@@ -118,7 +123,16 @@ const NavBar = () => {
             </>
           )}
         </div>
-      </div>
+
+        {/* Tooltip Component */}
+        <Tooltip
+          id="navTip"
+          place="bottom"
+          className="!z-[9999]"  // ensures tooltip is above other elements
+        />
+
+
+      </div> {/* End of main nav div */}
 
       {/* Mobile Menu */}
       {menuOpen && (

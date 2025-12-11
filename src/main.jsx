@@ -6,6 +6,8 @@ import router from "./Router";
 import AuthProvider from "./Firebase/AuthProvider";
 import { Toaster } from "react-hot-toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import "react-tooltip/dist/react-tooltip.css";
+
 
 const queryClient = new QueryClient();
 
