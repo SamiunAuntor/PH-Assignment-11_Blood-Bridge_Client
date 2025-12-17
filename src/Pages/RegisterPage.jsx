@@ -55,34 +55,38 @@ const RegisterPage = () => {
         try {
             const { user } = await registerUserWithEmailPassword(email, password);
 
-            // Navigate immediately
             showToast(`Welcome, ${name}!`, "success");
             reset();
-            setAvatarFile(null);
-            navigate("/");
+            navigate("/"); // immediate navigation for better UX
 
-            // Background updates
+            // Background sync
             (async () => {
                 try {
                     let avatarURL = null;
+
                     if (avatarFile) {
-                        try { avatarURL = await uploadImageToImgBB(avatarFile); }
-                        catch (uploadErr) { console.error("Avatar upload failed:", uploadErr); }
+                        avatarURL = await uploadImageToImgBB(avatarFile);
                     }
 
-                    await updateProfile(user, { displayName: name, photoURL: avatarURL || null });
+                    await updateProfile(user, {
+                        displayName: name,
+                        photoURL: avatarURL || null,
+                    });
+
                     await axios.post("/register-user", {
                         name,
                         email,
                         bloodGroup: data.bloodGroup,
                         district: data.district,
                         upazila: data.upazila,
-                        avatar: avatarURL || null
+                        avatar: avatarURL || null,
                     });
+
                 } catch (err) {
-                    console.error("Background update failed:", err);
+                    console.error("Background sync failed:", err);
                 }
             })();
+
 
         } catch (err) {
             // Conditional toast for already registered user
