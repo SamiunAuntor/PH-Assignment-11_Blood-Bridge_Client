@@ -5,11 +5,12 @@ import logo from "../assets/logo.png";
 import { MdSpaceDashboard } from "react-icons/md";
 import { HiUser, HiClipboardList, HiCog, HiLogout, HiUsers } from "react-icons/hi";
 import useRole from "../Hooks/useRole";
+import Loading from "../Components/Loading";
 
 const DashboardLayout = () => {
     const { role, isLoading } = useRole();
 
-    if (isLoading) return <p>Loading...</p>;
+    if (isLoading) return <Loading></Loading>;
 
     return (
         <div className="flex min-h-screen bg-gray-100">
