@@ -6,6 +6,7 @@ import RegisterPage from "./Pages/RegisterPage";
 import Error404Page from "./Pages/Error404Page";
 import DashboardLayout from "./Layouts/DashboardLayout";
 import CreateDonationRequest from "./Pages/CreateDonationRequest";
+import UserProfile from "./Pages/UserProfile";
 
 const router = createBrowserRouter([
     {
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
             {
                 path: "create-donation-request",
                 element: <CreateDonationRequest></CreateDonationRequest>
+            },
+            {
+                path: "profile",
+                element: <UserProfile></UserProfile>
             }
         ]
     },

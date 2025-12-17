@@ -4,13 +4,25 @@ import { Tooltip } from "react-tooltip";
 import logo from "../assets/logo.png";
 import { MdSpaceDashboard } from "react-icons/md";
 import { HiUser, HiClipboardList, HiCog, HiLogout, HiUsers } from "react-icons/hi";
+import { IoMdCreate } from "react-icons/io";
 import useRole from "../Hooks/useRole";
 import Loading from "../Components/Loading";
+import useAuth from "../Hooks/useAuth";
+import { useNavigate } from "react-router";
+
 
 const DashboardLayout = () => {
     const { role, isLoading } = useRole();
+    const { logoutUser } = useAuth();
+    const navigate = useNavigate();
 
-    if (isLoading) return <Loading></Loading>;
+
+    if (isLoading)
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loading />
+            </div>
+        );
 
     return (
         <div className="flex min-h-screen bg-gray-100">
@@ -80,7 +92,7 @@ const DashboardLayout = () => {
                                 `p-3 rounded-xl transition flex items-center justify-center ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
                             }
                         >
-                            <HiClipboardList size={26} />
+                            <IoMdCreate size={26} />
                         </NavLink>
                     )}
 
@@ -125,14 +137,22 @@ const DashboardLayout = () => {
                     </NavLink>
 
                     {/* Logout - All Roles */}
-                    <NavLink
-                        to="/logout"
+                    <button
+                        onClick={async () => {
+                            try {
+                                await logoutUser();
+                                navigate("/login"); // redirect to login page
+                            } catch (err) {
+                                console.error(err);
+                            }
+                        }}
                         data-tooltip-id="dashTip"
                         data-tooltip-content="Logout"
                         className="p-3 rounded-xl hover:bg-red-700 transition flex items-center justify-center"
                     >
                         <HiLogout size={26} />
-                    </NavLink>
+                    </button>
+
                 </div>
             </aside>
 

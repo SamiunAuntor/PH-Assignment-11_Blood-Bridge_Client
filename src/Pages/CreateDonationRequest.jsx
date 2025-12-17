@@ -99,7 +99,7 @@ const CreateDonationRequest = () => {
 
     return (
         <div className="px-4 md:px-12 py-6">
-            <h2 className="text-3xl font-bold text-red-600 mb-6">
+            <h2 className="text-2xl font-bold text-red-600 mb-6 md:text-4xl">
                 Create Donation Request
             </h2>
 
