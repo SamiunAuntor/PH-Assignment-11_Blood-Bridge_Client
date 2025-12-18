@@ -6,7 +6,7 @@ import useAuth from "../Hooks/useAuth";
 
 const CreateDonationRequest = () => {
     const axios = useAxios();
-    const { register, handleSubmit, watch, reset } = useForm();
+    const { register, handleSubmit, watch, reset, setValue } = useForm();
     const { user, loading } = useAuth();
 
     const [divisions, setDivisions] = useState([]);
@@ -16,7 +16,15 @@ const CreateDonationRequest = () => {
     const selectedDivision = watch("division");
     const selectedDistrict = watch("district");
 
-    // Fetch divisions/districts/upazilas from public folder
+    // Pre-fill requester info when user loads
+    useEffect(() => {
+        if (user) {
+            setValue("requesterName", user.displayName || "");
+            setValue("requesterEmail", user.email || "");
+        }
+    }, [user, setValue]);
+
+    // Fetch divisions/districts/upazilas
     useEffect(() => {
         const fetchLocationData = async () => {
             try {
@@ -62,12 +70,13 @@ const CreateDonationRequest = () => {
         }
 
         try {
-            // Get Firebase ID token for the logged-in user
             const idToken = await user.getIdToken();
 
             await axios.post(
                 "/dashboard/create-donation-request",
                 {
+                    requesterName: data.requesterName,
+                    requesterEmail: data.requesterEmail,
                     recipientName: data.recipientName,
                     recipientDistrict: data.district,
                     recipientUpazila: data.upazila,
@@ -107,6 +116,31 @@ const CreateDonationRequest = () => {
                 onSubmit={handleSubmit(onSubmit)}
                 className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
+                {/* Requester Name (read-only) */}
+                <div className="flex flex-col">
+                    <label className="text-sm font-semibold text-gray-700 mb-2">Requester Name</label>
+                    <input
+                        type="text"
+                        placeholder="Requester Name"
+                        className="px-4 py-3 border-2 border-gray-300 rounded-md outline-none bg-gray-100 cursor-not-allowed"
+                        {...register("requesterName", { required: true })}
+                        readOnly
+                    />
+                </div>
+
+                {/* Requester Email (read-only) */}
+                <div className="flex flex-col">
+                    <label className="text-sm font-semibold text-gray-700 mb-2">Requester Email</label>
+                    <input
+                        type="email"
+                        placeholder="Requester Email"
+                        className="px-4 py-3 border-2 border-gray-300 rounded-md outline-none bg-gray-100 cursor-not-allowed"
+                        {...register("requesterEmail", { required: true })}
+                        readOnly
+                    />
+                </div>
+
+
                 {/* Recipient Name */}
                 <input
                     type="text"
@@ -169,7 +203,7 @@ const CreateDonationRequest = () => {
                     </select>
                 </div>
 
-                {/* Date / Time */}
+                {/* Date | Time */}
                 <input
                     type="date"
                     className="px-4 py-3 border-2 border-red-300 focus:border-red-500 rounded-md outline-none cursor-pointer"

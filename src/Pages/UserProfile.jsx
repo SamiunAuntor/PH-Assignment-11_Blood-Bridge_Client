@@ -51,7 +51,9 @@ const UserProfile = () => {
         { enabled: !!user }
     );
 
-    if (loading || profileLoading) return <Loading />;
+    if (loading || profileLoading) return <div className="flex items-center justify-center min-h-screen">
+        <Loading />
+    </div>;
     if (error || !data) return <div className="p-20 text-center text-red-500">Error loading profile details.</div>;
 
     // Compute location names
