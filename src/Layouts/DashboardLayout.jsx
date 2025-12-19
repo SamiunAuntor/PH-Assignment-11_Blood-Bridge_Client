@@ -3,31 +3,35 @@ import { NavLink, Outlet, useNavigate } from "react-router";
 import { Tooltip } from "react-tooltip";
 import logo from "../assets/logo.png";
 import { MdSpaceDashboard } from "react-icons/md";
-import { HiUser, HiClipboardList, HiCog, HiLogout, HiUsers } from "react-icons/hi";
+import { HiUser, HiClipboardList, HiLogout, HiUsers } from "react-icons/hi";
 import { IoMdCreate } from "react-icons/io";
 import useRole from "../Hooks/useRole";
 import Loading from "../Components/Loading";
 import useAuth from "../Hooks/useAuth";
-
 
 const DashboardLayout = () => {
     const { role, isLoading } = useRole();
     const { user, loading, logoutUser } = useAuth();
     const navigate = useNavigate();
 
+    // Role hierarchy
+    const isDonor = role === "donor" || role === "volunteer" || role === "admin";
+    const isVolunteer = role === "volunteer" || role === "admin";
+    const isAdmin = role === "admin";
+
     useEffect(() => {
-        // Not logged in → login
         if (!loading && !user) {
             navigate("/login", { replace: true });
         }
     }, [user, loading, navigate]);
 
-    if (loading || isLoading)
+    if (loading || isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <Loading />
             </div>
         );
+    }
 
     if (!user) return null;
 
@@ -35,127 +39,106 @@ const DashboardLayout = () => {
         <div className="flex min-h-screen bg-gray-100">
 
             {/* Sidebar */}
-            <aside className="w-16 md:w-20 bg-red-600 text-white flex flex-col items-center py-4 gap-2 md:gap-4 shadow-lg">
+            <aside className="w-16 md:w-20 bg-red-600 text-white flex flex-col items-center py-4 gap-4 shadow-lg">
 
                 {/* Logo */}
-                <NavLink
-                    to="/"
-                    className="cursor-pointer"
-                    data-tooltip-id="dashTip"
-                    data-tooltip-content="Home"
-                >
-                    <div className="text-3xl font-bold bg-white text-red-600 w-12 h-12 flex items-center justify-center rounded-full">
+                <NavLink to="/" data-tooltip-id="dashTip" data-tooltip-content="Home">
+                    <div className="bg-white text-red-600 w-12 h-12 rounded-full flex items-center justify-center">
                         <img src={logo} alt="logo" className="w-10 h-10" />
                     </div>
                 </NavLink>
 
-                {/* Menu Icons */}
-                <div className="flex flex-col gap-2 md:gap-4 mt-2">
-                    {/* Dashboard Home - All Roles */}
+                {/* Menu */}
+                <div className="flex flex-col gap-4 mt-4">
+
+                    {/* Dashboard */}
                     <NavLink
                         to="/dashboard/home"
                         data-tooltip-id="dashTip"
                         data-tooltip-content="Dashboard"
                         className={({ isActive }) =>
-                            `p-3 rounded-xl transition flex items-center justify-center ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
+                            `p-3 rounded-xl ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
                         }
                     >
                         <MdSpaceDashboard size={26} />
                     </NavLink>
 
-                    {/* Profile - All Roles */}
+                    {/* Profile */}
                     <NavLink
                         to="/dashboard/profile"
                         data-tooltip-id="dashTip"
                         data-tooltip-content="Profile"
                         className={({ isActive }) =>
-                            `p-3 rounded-xl transition flex items-center justify-center ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
+                            `p-3 rounded-xl ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
                         }
                     >
                         <HiUser size={26} />
                     </NavLink>
 
-                    {/* Donor: My Donation Requests */}
-                    {role === "donor" && (
+                    {/* Donor Features (Donor + Volunteer + Admin) */}
+                    {isDonor && (
+                        <>
+                            <NavLink
+                                to="/dashboard/my-donation-requests"
+                                data-tooltip-id="dashTip"
+                                data-tooltip-content="My Donation Requests"
+                                className={({ isActive }) =>
+                                    `p-3 rounded-xl ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
+                                }
+                            >
+                                <HiClipboardList size={26} />
+                            </NavLink>
+
+                            <NavLink
+                                to="/dashboard/create-donation-request"
+                                data-tooltip-id="dashTip"
+                                data-tooltip-content="Create Donation Request"
+                                className={({ isActive }) =>
+                                    `p-3 rounded-xl ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
+                                }
+                            >
+                                <IoMdCreate size={26} />
+                            </NavLink>
+                        </>
+                    )}
+
+                    {/* Volunteer + Admin */}
+                    {isVolunteer && (
                         <NavLink
-                            to="/dashboard/my-donation-requests"
+                            to="/dashboard/all-blood-donation-request"
                             data-tooltip-id="dashTip"
-                            data-tooltip-content="My Donation Requests"
+                            data-tooltip-content="All Donation Requests"
                             className={({ isActive }) =>
-                                `p-3 rounded-xl transition flex items-center justify-center ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
+                                `p-3 rounded-xl ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
                             }
                         >
                             <HiClipboardList size={26} />
                         </NavLink>
                     )}
 
-                    {/* Donor: Create Donation Request */}
-                    {role === "donor" && (
-                        <NavLink
-                            to="/dashboard/create-donation-request"
-                            data-tooltip-id="dashTip"
-                            data-tooltip-content="Create Donation Request"
-                            className={({ isActive }) =>
-                                `p-3 rounded-xl transition flex items-center justify-center ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
-                            }
-                        >
-                            <IoMdCreate size={26} />
-                        </NavLink>
-                    )}
-
-                    {/* Admin: All Users */}
-                    {role === "admin" && (
+                    {/* Admin only */}
+                    {isAdmin && (
                         <NavLink
                             to="/dashboard/all-users"
                             data-tooltip-id="dashTip"
                             data-tooltip-content="All Users"
                             className={({ isActive }) =>
-                                `p-3 rounded-xl transition flex items-center justify-center ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
+                                `p-3 rounded-xl ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
                             }
                         >
                             <HiUsers size={26} />
                         </NavLink>
                     )}
 
-                    {/* Admin & Volunteer: All Blood Donation Requests */}
-                    {(role === "admin" || role === "volunteer") && (
-                        <NavLink
-                            to="/dashboard/all-blood-donation-request"
-                            data-tooltip-id="dashTip"
-                            data-tooltip-content="All Donation Requests"
-                            className={({ isActive }) =>
-                                `p-3 rounded-xl transition flex items-center justify-center ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
-                            }
-                        >
-                            <HiClipboardList size={26} />
-                        </NavLink>
-                    )}
-
-                    {/* Settings - All Roles */}
-                    <NavLink
-                        to="/dashboard/settings"
-                        data-tooltip-id="dashTip"
-                        data-tooltip-content="Settings"
-                        className={({ isActive }) =>
-                            `p-3 rounded-xl transition flex items-center justify-center ${isActive ? "bg-red-700 scale-105" : "hover:bg-red-700"}`
-                        }
-                    >
-                        <HiCog size={26} />
-                    </NavLink>
-
-                    {/* Logout - All Roles */}
+                    {/* Logout */}
                     <button
                         onClick={async () => {
-                            try {
-                                await logoutUser();
-                                navigate("/login"); // redirect to login page
-                            } catch (err) {
-                                console.error(err);
-                            }
+                            await logoutUser();
+                            navigate("/login");
                         }}
                         data-tooltip-id="dashTip"
                         data-tooltip-content="Logout"
-                        className="p-3 rounded-xl hover:bg-red-700 transition flex items-center justify-center"
+                        className="p-3 rounded-xl hover:bg-red-700"
                     >
                         <HiLogout size={26} />
                     </button>
@@ -163,10 +146,9 @@ const DashboardLayout = () => {
                 </div>
             </aside>
 
-            {/* Tooltip */}
             <Tooltip id="dashTip" place="right" />
 
-            {/* Main Content */}
+            {/* Content */}
             <main className="flex-1 p-6">
                 <Outlet />
             </main>

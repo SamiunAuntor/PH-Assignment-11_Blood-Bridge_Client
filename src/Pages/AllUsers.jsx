@@ -100,8 +100,9 @@ const AllUsers = () => {
             </div>
 
             {/* TABLE */}
-            <div className="overflow-x-auto border rounded">
-                <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto -mx-6 md:mx-0 border rounded">
+                <div className="inline-block min-w-full align-middle px-6 md:px-0">
+                    <table className="min-w-full text-left border-collapse">
                     <thead className="bg-red-100">
                         <tr>
                             <th className="border px-3 py-2">Name</th>
@@ -149,7 +150,8 @@ const AllUsers = () => {
                             </tr>
                         ))}
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </div>
 
             {/* PAGINATION */}

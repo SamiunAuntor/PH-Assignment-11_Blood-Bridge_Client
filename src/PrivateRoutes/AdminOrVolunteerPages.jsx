@@ -10,7 +10,7 @@ const AdminOrVolunteerPages = ({ children }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Not logged in → login
+        // Not logged in -> login
         if (!loading && !user) {
             navigate("/login", { replace: true });
             return;

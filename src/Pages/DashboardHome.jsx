@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Eye, Edit3, Trash2, Users, DollarSign, Activity, CheckCircle, XCircle, User } from "lucide-react";
 import { getAuth } from "firebase/auth";
-import Swal from "sweetalert2"; // Recommended for the confirmation modal
+import Swal from "sweetalert2"; 
 import useRole from "../Hooks/useRole";
 import useAxios from "../Hooks/useAxios";
 import useAuth from "../Hooks/useAuth";
@@ -173,8 +173,9 @@ const DashboardHome = () => {
             {role === "donor" && recentRequests.length > 0 ? (
                 <div className="space-y-6">
                     <h2 className="text-xl font-bold text-slate-700">3 Recent Donation Requests</h2>
-                    <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-                        <table className="w-full text-left border-collapse">
+                    <div className="overflow-x-auto -mx-6 md:mx-0 rounded-xl border border-slate-200 shadow-sm">
+                        <div className="inline-block min-w-full align-middle px-6 md:px-0">
+                            <table className="min-w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50 text-slate-600 uppercase text-xs font-bold tracking-wider">
                                     <th className="px-4 py-4">#</th>
@@ -247,7 +248,8 @@ const DashboardHome = () => {
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                            </table>
+                        </div>
                     </div>
                     <Link to="/dashboard/my-donation-requests" className="inline-block mt-4 px-6 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors shadow-md">
                         View All My Requests

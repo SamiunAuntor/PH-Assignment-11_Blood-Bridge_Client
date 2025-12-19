@@ -10,15 +10,21 @@ const DonorPages = ({ children }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Not logged in → login
+        // Not logged in -> login
         if (!loading && !user) {
             navigate("/login", { replace: true });
             return;
         }
 
-        // Check if user has donor role - unauthorized access detected
-        if (!isLoading && user && role && role !== "donor") {
-            // Log out and redirect to login
+        // I used this role hierarchy :
+        // donor     = donor
+        // volunteer = donor + volunteer
+        // admin     = donor + volunteer + admin
+        // So donor features should be available to donor, volunteer and admin.
+        const allowedRoles = ["donor", "volunteer", "admin"];
+
+        // Unauthorized access -> logout and redirect
+        if (!isLoading && user && role && !allowedRoles.includes(role)) {
             const handleUnauthorized = async () => {
                 try {
                     await logoutUser();
@@ -35,8 +41,8 @@ const DonorPages = ({ children }) => {
     if (loading || isLoading) return <Loading />;
     if (!user) return null;
 
-    // Only render children if user is donor
-    if (role !== "donor") return null;
+    // Only render children if user has at least donor-level access
+    if (!["donor", "volunteer", "admin"].includes(role)) return null;
 
     return <>{children}</>;
 };

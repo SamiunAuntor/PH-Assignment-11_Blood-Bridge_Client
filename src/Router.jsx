@@ -11,6 +11,11 @@ import DashboardHome from "./Pages/DashboardHome";
 import MyAllDonationRequests from "./Pages/MyAllDonationRequests";
 import AllUsers from "./Pages/AllUsers";
 import AllBloodDonationRequest from "./Pages/AllBloodDonationRequest";
+import EditDonationRequest from "./Pages/EditDonationRequest";
+import SearchDonors from "./Pages/SearchDonors";
+import DonationRequests from "./Pages/DonationRequests";
+import DonationRequestDetails from "./Pages/DonationRequestDetails";
+import Funding from "./Pages/Funding";
 import DonorPages from "./PrivateRoutes/DonorPages";
 import AdminPages from "./PrivateRoutes/AdminPages";
 import AdminOrVolunteerPages from "./PrivateRoutes/AdminOrVolunteerPages";
@@ -32,6 +37,22 @@ const router = createBrowserRouter([
             {
                 path: "register",
                 element: <RegisterPage></RegisterPage>,
+            },
+            {
+                path: "search",
+                element: <SearchDonors></SearchDonors>,
+            },
+            {
+                path: "donation-requests",
+                element: <DonationRequests></DonationRequests>,
+            },
+            {
+                path: "donation-request/:id",
+                element: <ProtectedRoute><DonationRequestDetails></DonationRequestDetails></ProtectedRoute>,
+            },
+            {
+                path: "funding",
+                element: <Funding></Funding>,
             }
         ]
 
@@ -67,6 +88,14 @@ const router = createBrowserRouter([
             {
                 path: "all-blood-donation-request",
                 element: <AdminOrVolunteerPages><AllBloodDonationRequest></AllBloodDonationRequest></AdminOrVolunteerPages>
+            },
+            {
+                path: "edit-donation-request/:id",
+                element: <DonorPages><EditDonationRequest></EditDonationRequest></DonorPages>
+            },
+            {
+                path: "donation-request/:id",
+                element: <ProtectedRoute><DonationRequestDetails></DonationRequestDetails></ProtectedRoute>
             }
         ]
     },

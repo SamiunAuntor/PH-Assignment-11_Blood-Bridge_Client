@@ -1,17 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { MapPin, Mail, Droplets, Calendar, User, ShieldCheck } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { MapPin, Mail, Droplets, Calendar, ShieldCheck, Edit2, Save, X } from "lucide-react";
 import useAxios from "../Hooks/useAxios";
 import useAuth from "../Hooks/useAuth";
 import Loading from "../Components/Loading";
+import { getAuth } from "firebase/auth";
+import Swal from "sweetalert2";
+import { uploadImageToImgBB } from "../Utilities/UploadImage";
 
 const UserProfile = () => {
     const axios = useAxios();
     const { user, loading } = useAuth();
+    const queryClient = useQueryClient();
+    const [isEditing, setIsEditing] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     const [divisions, setDivisions] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [upzillas, setUpzillas] = useState([]);
+
+    const [formData, setFormData] = useState({
+        name: "",
+        bloodGroup: "",
+        district: "",
+        upazila: "",
+        avatar: "",
+    });
 
     // Load location JSONs
     useEffect(() => {
@@ -51,19 +65,88 @@ const UserProfile = () => {
         { enabled: !!user }
     );
 
+    // Initialize form data when profile loads
+    useEffect(() => {
+        if (data) {
+            setFormData({
+                name: data.name || "",
+                bloodGroup: data.bloodGroup || "",
+                district: data.district || "",
+                upazila: data.upazila || "",
+                avatar: data.avatar || "",
+            });
+        }
+    }, [data]);
+
+    const handleSave = async () => {
+        try {
+            setSaving(true);
+            const auth = getAuth();
+            const token = await auth.currentUser.getIdToken();
+
+            await axios.put(
+                "/dashboard/profile",
+                formData,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+
+            // Update Firebase profile photoURL if avatar changed
+            if (formData.avatar && user) {
+                try {
+                    const { updateProfile } = await import("firebase/auth");
+                    await updateProfile(auth.currentUser, {
+                        photoURL: formData.avatar,
+                    });
+                } catch (firebaseErr) {
+                    console.error("Firebase profile update error:", firebaseErr);
+                }
+            }
+
+            Swal.fire("Success", "Profile updated successfully", "success");
+            setIsEditing(false);
+            // Refetch profile data
+            await queryClient.invalidateQueries(["userProfile", user?.email]);
+        } catch (err) {
+            console.error("Update error:", err);
+            Swal.fire("Error", "Failed to update profile", "error");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleCancel = () => {
+        if (data) {
+            setFormData({
+                name: data.name || "",
+                bloodGroup: data.bloodGroup || "",
+                district: data.district || "",
+                upazila: data.upazila || "",
+                avatar: data.avatar || "",
+            });
+        }
+        setIsEditing(false);
+    };
+
     if (loading || profileLoading) return <div className="flex items-center justify-center min-h-screen">
         <Loading />
     </div>;
     if (error || !data) return <div className="p-20 text-center text-red-500">Error loading profile details.</div>;
 
     // Compute location names
-    const districtObj = districts.find((d) => d.id === (data.district || data.recipientDistrict));
-    const upazilaObj = upzillas.find((u) => u.id === (data.upazila || data.recipientUpazila));
+    const districtObj = districts.find((d) => String(d.id) === String(data.district || data.recipientDistrict));
+    const upazilaObj = upzillas.find((u) => String(u.id) === String(data.upazila || data.recipientUpazila));
     const divisionObj = divisions.find((div) => div.id === (districtObj?.division_id || upazilaObj?.division_id));
 
     const districtName = districtObj?.name || "N/A";
     const upazilaName = upazilaObj?.name || "N/A";
     const divisionName = divisionObj?.name || "N/A";
+
+    const filteredUpzillas = upzillas.filter((u) => {
+        const selectedDistrict = formData.district || data.district;
+        return String(u.district_id) === String(selectedDistrict);
+    });
 
     return (
         <div className=" bg-gray-100 flex flex-col">
@@ -76,7 +159,7 @@ const UserProfile = () => {
 
                     <div className="relative">
                         <img
-                            src={data.avatar || "https://i.ibb.co/HDxczbsV/My-Profile.png"}
+                            src={formData.avatar || data.avatar || user?.photoURL || "https://i.ibb.co/HDxczbsV/My-Profile.png"}
                             alt="Profile"
                             className="w-32 h-32 md:w-40 md:h-40 rounded-2xl object-cover object-top border-4 border-white shadow-2xl"
                         />
@@ -96,10 +179,34 @@ const UserProfile = () => {
                         </div>
                     </div>
 
-                    <div className="mt-4 md:mt-0">
-                        <button className="px-5 py-2 bg-white text-red-600 font-semibold rounded-lg shadow hover:bg-white/90 transition">
-                            Edit Profile
-                        </button>
+                    <div className="mt-4 md:mt-0 flex gap-2">
+                        {!isEditing ? (
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                className="px-5 py-2 bg-white text-red-600 font-semibold rounded-lg shadow hover:bg-white/90 transition flex items-center gap-2"
+                            >
+                                <Edit2 size={18} />
+                                Edit Profile
+                            </button>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={handleSave}
+                                    disabled={saving}
+                                    className="px-5 py-2 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition flex items-center gap-2 disabled:opacity-50"
+                                >
+                                    <Save size={18} />
+                                    {saving ? "Saving..." : "Save"}
+                                </button>
+                                <button
+                                    onClick={handleCancel}
+                                    className="px-5 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow hover:bg-gray-700 transition flex items-center gap-2"
+                                >
+                                    <X size={18} />
+                                    Cancel
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
@@ -108,15 +215,40 @@ const UserProfile = () => {
             {/* 4 Cards Grid */}
             <main className="flex-1 mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-6 p-6 md:p-10">
                 <Card title="Health Profile">
-                    <div className="flex items-center gap-4 p-4 bg-red-50 rounded-xl border border-red-100 h-full">
-                        <div className="p-3 bg-red-600 rounded-lg text-white">
-                            <Droplets size={24} />
+                    {isEditing ? (
+                        <div className="space-y-4 h-full">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                                    Blood Group
+                                </label>
+                                <select
+                                    value={formData.bloodGroup}
+                                    onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                                >
+                                    <option value="">Select</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm text-red-800 font-medium">Blood Group</p>
-                            <p className="text-2xl font-black text-red-600">{data.bloodGroup || "O+"}</p>
+                    ) : (
+                        <div className="flex items-center gap-4 p-4 bg-red-50 rounded-xl border border-red-100 h-full">
+                            <div className="p-3 bg-red-600 rounded-lg text-white">
+                                <Droplets size={24} />
+                            </div>
+                            <div>
+                                <p className="text-sm text-red-800 font-medium">Blood Group</p>
+                                <p className="text-2xl font-black text-red-600">{data.bloodGroup || "O+"}</p>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </Card>
 
                 <Card title="Account Security">
@@ -131,20 +263,117 @@ const UserProfile = () => {
                 </Card>
 
                 <Card title="Personal Information">
-                    <div className="grid grid-cols-1 gap-4 h-full">
-                        <InfoItem label="Full Name" value={data.name || data.requesterName} />
-                        <InfoItem label="Email" value={data.email || data.requesterEmail} />
-                    </div>
+                    {isEditing ? (
+                        <div className="space-y-4 h-full">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                                    Full Name
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                                    Email (Read Only)
+                                </label>
+                                <input
+                                    type="email"
+                                    value={data.email || data.requesterEmail}
+                                    readOnly
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                                    Avatar URL
+                                </label>
+                                <div className="space-y-2">
+                                    <input
+                                        type="text"
+                                        value={formData.avatar}
+                                        onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                                        placeholder="Enter image URL"
+                                    />
+                                    <div>
+                                        <label className="block text-xs text-gray-600 mb-1">Or upload image:</label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={async (e) => {
+                                                const file = e.target.files[0];
+                                                if (file) {
+                                                    try {
+                                                        const url = await uploadImageToImgBB(file);
+                                                        setFormData({ ...formData, avatar: url });
+                                                        Swal.fire("Success", "Image uploaded successfully", "success");
+                                                    } catch (err) {
+                                                        Swal.fire("Error", "Failed to upload image", "error");
+                                                    }
+                                                }
+                                            }}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-4 h-full">
+                            <InfoItem label="Full Name" value={data.name || data.requesterName} />
+                            <InfoItem label="Email" value={data.email || data.requesterEmail} />
+                        </div>
+                    )}
                 </Card>
 
                 <Card title="Current Location">
-                    <div className="flex items-start gap-4 h-full">
-                        <MapPin size={24} className="text-red-600 mt-1" />
-                        <div>
-                            <p className="text-lg font-medium text-slate-700">{upazilaName}, {districtName}</p>
-                            <p className="text-sm text-slate-500">{divisionName} Division</p>
+                    {isEditing ? (
+                        <div className="space-y-4 h-full">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                                    District
+                                </label>
+                                <select
+                                    value={formData.district}
+                                    onChange={(e) => setFormData({ ...formData, district: e.target.value, upazila: "" })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                                >
+                                    <option value="">Select District</option>
+                                    {districts.map((d) => (
+                                        <option key={d.id} value={d.id}>{d.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                                    Upazila
+                                </label>
+                                <select
+                                    value={formData.upazila}
+                                    onChange={(e) => setFormData({ ...formData, upazila: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                                    disabled={!formData.district}
+                                >
+                                    <option value="">Select Upazila</option>
+                                    {filteredUpzillas.map((u) => (
+                                        <option key={u.id} value={u.id}>{u.name}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="flex items-start gap-4 h-full">
+                            <MapPin size={24} className="text-red-600 mt-1" />
+                            <div>
+                                <p className="text-lg font-medium text-slate-700">{upazilaName}, {districtName}</p>
+                                <p className="text-sm text-slate-500">{divisionName} Division</p>
+                            </div>
+                        </div>
+                    )}
                 </Card>
             </main>
         </div>
