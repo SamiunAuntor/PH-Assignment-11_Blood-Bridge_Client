@@ -164,11 +164,16 @@ const UserProfile = () => {
                             className="w-32 h-32 md:w-40 md:h-40 rounded-2xl object-cover object-top border-4 border-white shadow-2xl"
                         />
                         <span
-                            className={`absolute -bottom-2 -right-2 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider text-white shadow-lg ${data.status === "pending" ? "bg-yellow-500" : "bg-green-500"
+                            className={`absolute -bottom-2 -right-2 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider text-white shadow-lg ${data.status === "pending"
+                                    ? "bg-yellow-500"
+                                    : data.status === "blocked"
+                                        ? "bg-red-600"
+                                        : "bg-green-500"
                                 }`}
                         >
                             {data.status || "Active"}
                         </span>
+
                     </div>
 
                     <div className="flex-1 text-center md:text-left text-white">

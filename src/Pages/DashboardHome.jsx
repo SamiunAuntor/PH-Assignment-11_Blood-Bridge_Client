@@ -175,7 +175,17 @@ const DashboardHome = () => {
         }
     };
 
-    if (isLoading || loadingData) return <Loading />;
+    const loadingAll = isLoading || loadingData;
+
+    if (loadingAll) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loading />
+            </div>
+        );
+    }
+
+
 
     const statusStyle = (s) =>
     ({
