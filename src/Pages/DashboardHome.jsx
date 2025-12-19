@@ -270,17 +270,19 @@ const DashboardHome = () => {
                         </table>
                     </div>
 
-                    {/* See All Requests Button for Donor */}
-                    {role === "donor" && (
-                        <div className="mt-6 text-center">
-                            <button
-                                onClick={() => navigate('/dashboard/my-donation-requests')}
-                                className="px-8 py-3 bg-slate-800 text-white font-bold text-sm rounded-md shadow-lg hover:bg-slate-900 transition-all uppercase tracking-widest"
-                            >
-                                See All My Requests
-                            </button>
-                        </div>
-                    )}
+                    {/* See All Requests Button */}
+                    <div className="mt-6 text-center">
+                        <button
+                            onClick={() => {
+                                if (role === "donor") navigate('/dashboard/my-donation-requests');
+                                else navigate('/dashboard/all-blood-donation-request');
+                            }}
+                            className="px-8 py-3 bg-slate-800 text-white font-bold text-sm rounded-md shadow-lg hover:bg-slate-900 transition-all uppercase tracking-widest"
+                        >
+                            See All My Requests
+                        </button>
+                    </div>
+
                 </div>
             ) : (
                 <div className="p-12 text-center bg-white/30 rounded-lg border-dashed border-2 border-gray-300">

@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router";
+import {
+    Eye,
+    Edit3,
+    Trash2,
+    CheckCircle,
+    XCircle
+} from "lucide-react";
+import { getAuth } from "firebase/auth";
+import Swal from "sweetalert2";
 import useAxios from "../Hooks/useAxios";
 import useAuth from "../Hooks/useAuth";
 import Loading from "../Components/Loading";
-import { getAuth } from "firebase/auth";
 
 const LIMIT = 10;
 
@@ -21,45 +30,37 @@ const MyAllDonationRequests = () => {
 
     const totalPages = Math.ceil(total / LIMIT);
 
-    /*Fetch location JSON data */
+    /* Load Location Data */
     useEffect(() => {
-        const loadLocations = async () => {
-            const [districtRes, upzillaRes] = await Promise.all([
-                fetch("/districts.json").then(res => res.json()),
-                fetch("/upzillas.json").then(res => res.json()),
-            ]);
-            setDistricts(districtRes);
-            setUpzillas(upzillaRes);
-        };
-        loadLocations();
+        Promise.all([
+            fetch("/districts.json").then(res => res.json()),
+            fetch("/upzillas.json").then(res => res.json())
+        ]).then(([d, u]) => {
+            setDistricts(d);
+            setUpzillas(u);
+        });
     }, []);
 
     const decodeLocation = (districtId, upazilaId) => {
-        const district = districts.find(d => d.id === districtId);
-        const upazila = upzillas.find(u => u.id === upazilaId);
-
+        const district = districts.find(d => `${d.id}` === `${districtId}`);
+        const upazila = upzillas.find(u => `${u.id}` === `${upazilaId}`);
         return {
             districtName: district?.name || districtId,
-            upazilaName: upazila?.name || upazilaId,
+            upazilaName: upazila?.name || upazilaId
         };
     };
 
-    /* Fetch donation requests */
+    /* Fetch Donation Requests */
     useEffect(() => {
         const fetchRequests = async () => {
+            if (!user || !districts.length || !upzillas.length) return;
+
+            setLoading(true);
             try {
-                setLoading(true);
-
-                const auth = getAuth();
-                const token = await auth.currentUser.getIdToken();
-
+                const token = await getAuth().currentUser.getIdToken();
                 const res = await axios.get(
                     `/dashboard/my-donation-requests?status=${status}&page=${page}&limit=${LIMIT}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
+                    { headers: { Authorization: `Bearer ${token}` } }
                 );
 
                 const decoded = res.data.requests.map(req => {
@@ -70,7 +71,7 @@ const MyAllDonationRequests = () => {
                     return {
                         ...req,
                         recipientDistrictName: districtName,
-                        recipientUpazilaName: upazilaName,
+                        recipientUpazilaName: upazilaName
                     };
                 });
 
@@ -83,29 +84,79 @@ const MyAllDonationRequests = () => {
             }
         };
 
-        if (user && districts.length && upzillas.length) {
-            fetchRequests();
-        }
+        fetchRequests();
     }, [user, status, page, districts, upzillas, axios]);
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center min-h-screen">
-                <Loading />
-            </div>
-        );
-    }
+    /* Status Update */
+    const handleStatusUpdate = async (id, newStatus) => {
+        const confirm = await Swal.fire({
+            title: "Update Status?",
+            text: `Mark this request as ${newStatus}?`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: newStatus === "done" ? "#16a34a" : "#dc2626",
+            confirmButtonText: "Yes, Update"
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+            const token = await getAuth().currentUser.getIdToken();
+            await axios.put(
+                `/dashboard/my-donation-request/${id}/status`,
+                { status: newStatus },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            Swal.fire("Success", `Request marked as ${newStatus}`, "success");
+            setPage(1); // refetch first page
+        } catch {
+            Swal.fire("Error", "Status update failed", "error");
+        }
+    };
+
+    /* Delete Request */
+    const handleDelete = async (id) => {
+        const confirm = await Swal.fire({
+            title: "Delete this request?",
+            text: "This action cannot be undone!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+            const token = await getAuth().currentUser.getIdToken();
+            await axios.delete(`/dashboard/donation-request/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            Swal.fire("Deleted!", "Request has been removed.", "success");
+            setPage(1);
+        } catch {
+            Swal.fire("Error", "Delete failed", "error");
+        }
+    };
+
+    if (loading) return <Loading />;
+
+    const statusStyle = (s) =>
+    ({
+        pending: "bg-orange-100 text-orange-700 border-orange-200",
+        inprogress: "bg-yellow-100 text-yellow-700 border-yellow-200",
+        done: "bg-green-100 text-green-700 border-green-200",
+        canceled: "bg-red-100 text-red-700 border-red-200"
+    }[s] || "bg-gray-100 text-gray-700");
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-red-600">
+        <div className="p-6 md:p-10 min-h-screen bg-transparent">
+            <h1 className="text-4xl font-black text-slate-800 mb-6">
                 My Donation Requests 🩸
             </h1>
 
-            {/* Filter  */}
-            <div>
+            {/* Filter */}
+            <div className="mb-6">
                 <select
-                    className="border px-3 py-2 rounded"
+                    className="border px-3 py-2 rounded shadow-sm"
                     value={status}
                     onChange={(e) => {
                         setStatus(e.target.value);
@@ -121,38 +172,64 @@ const MyAllDonationRequests = () => {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-gray-300">
-                    <thead className="bg-red-100">
-                        <tr>
-                            <th className="border px-3 py-2">Recipient Name</th>
-                            <th className="border px-3 py-2">Location</th>
-                            <th className="border px-3 py-2">Blood Group</th>
-                            <th className="border px-3 py-2">Date</th>
-                            <th className="border px-3 py-2">Time</th>
-                            <th className="border px-3 py-2">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {requests.map(req => (
-                            <tr key={req._id} className="text-center">
-                                <td className="border px-3 py-2">{req.recipientName}</td>
-                                <td className="border px-3 py-2">
-                                    {req.recipientDistrictName}, {req.recipientUpazilaName}
-                                </td>
-                                <td className="border px-3 py-2">{req.bloodGroup}</td>
-                                <td className="border px-3 py-2">{req.donationDate}</td>
-                                <td className="border px-3 py-2">{req.donationTime}</td>
-                                <td className="border px-3 py-2 capitalize">{req.status}</td>
+            {requests.length > 0 ? (
+                <div className="overflow-x-auto w-full border border-gray-200 rounded-md shadow-sm bg-white">
+                    <table className="w-full border-collapse min-w-[700px]">
+                        <thead>
+                            <tr className="bg-gray-50 text-center">
+                                {["Recipient", "Location", "Blood", "Date", "Time", "Status", "Actions"].map(h => (
+                                    <th
+                                        key={h}
+                                        className="px-4 py-3 border border-gray-200 font-bold text-xs uppercase text-slate-700"
+                                    >
+                                        {h}
+                                    </th>
+                                ))}
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            {requests.map(r => (
+                                <tr key={r._id} className="hover:bg-gray-50 transition-colors text-center">
+                                    <td className="px-4 py-3 border border-gray-200 text-sm font-medium">{r.recipientName}</td>
+                                    <td className="px-4 py-3 border border-gray-200 text-sm">
+                                        {r.recipientUpazilaName}, {r.recipientDistrictName}
+                                    </td>
+                                    <td className="px-4 py-3 border border-gray-200 font-black text-red-600 text-sm">{r.bloodGroup}</td>
+                                    <td className="px-4 py-3 border border-gray-200 text-sm">{r.donationDate}</td>
+                                    <td className="px-4 py-3 border border-gray-200 text-sm">{r.donationTime}</td>
+                                    <td className="px-4 py-3 border border-gray-200">
+                                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold border inline-block ${statusStyle(r.status)}`}>
+                                            {r.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 border border-gray-200">
+                                        <div className="flex items-center justify-center gap-1">
+                                            <Link to={`/dashboard/donation-request/${r._id}`} className="p-1.5 border border-gray-200 rounded-sm hover:bg-gray-100"><Eye size={14} /></Link>
+                                            <Link to={`/dashboard/edit-donation-request/${r._id}`} className="p-1.5 border border-gray-200 rounded-sm hover:bg-gray-100 text-blue-600"><Edit3 size={14} /></Link>
+                                            <button onClick={() => handleDelete(r._id)} className="p-1.5 border border-gray-200 rounded-sm hover:bg-gray-100 text-red-600"><Trash2 size={14} /></button>
 
-            {/*  Pagination  */}
+                                            {r.status === "inprogress" && (
+                                                <div className="flex gap-1 ml-1 border-l pl-1 border-gray-200">
+                                                    <button onClick={() => handleStatusUpdate(r._id, "done")} className="p-1.5 bg-green-600 text-white rounded-sm hover:bg-green-700"><CheckCircle size={14} /></button>
+                                                    <button onClick={() => handleStatusUpdate(r._id, "canceled")} className="p-1.5 bg-red-600 text-white rounded-sm hover:bg-red-700"><XCircle size={14} /></button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <div className="p-12 text-center bg-white/30 rounded-lg border-dashed border-2 border-gray-300">
+                    No donation requests found.
+                </div>
+            )}
+
+            {/* Pagination */}
             {totalPages > 1 && (
-                <div className="flex justify-center gap-2">
+                <div className="flex justify-center gap-2 mt-6">
                     <button
                         disabled={page === 1}
                         onClick={() => setPage(page - 1)}
@@ -160,18 +237,15 @@ const MyAllDonationRequests = () => {
                     >
                         Prev
                     </button>
-
                     {[...Array(totalPages).keys()].map(num => (
                         <button
                             key={num}
                             onClick={() => setPage(num + 1)}
-                            className={`px-3 py-1 border rounded ${page === num + 1 ? "bg-red-600 text-white" : ""
-                                }`}
+                            className={`px-3 py-1 border rounded ${page === num + 1 ? "bg-red-600 text-white" : ""}`}
                         >
                             {num + 1}
                         </button>
                     ))}
-
                     <button
                         disabled={page === totalPages}
                         onClick={() => setPage(page + 1)}
