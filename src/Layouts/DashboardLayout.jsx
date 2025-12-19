@@ -1,5 +1,5 @@
-import React from "react";
-import { NavLink, Outlet } from "react-router";
+import React, { useEffect } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router";
 import { Tooltip } from "react-tooltip";
 import logo from "../assets/logo.png";
 import { MdSpaceDashboard } from "react-icons/md";
@@ -8,21 +8,28 @@ import { IoMdCreate } from "react-icons/io";
 import useRole from "../Hooks/useRole";
 import Loading from "../Components/Loading";
 import useAuth from "../Hooks/useAuth";
-import { useNavigate } from "react-router";
 
 
 const DashboardLayout = () => {
     const { role, isLoading } = useRole();
-    const { logoutUser } = useAuth();
+    const { user, loading, logoutUser } = useAuth();
     const navigate = useNavigate();
 
+    useEffect(() => {
+        // Not logged in → login
+        if (!loading && !user) {
+            navigate("/login", { replace: true });
+        }
+    }, [user, loading, navigate]);
 
-    if (isLoading)
+    if (loading || isLoading)
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <Loading />
             </div>
         );
+
+    if (!user) return null;
 
     return (
         <div className="flex min-h-screen bg-gray-100">
@@ -46,7 +53,7 @@ const DashboardLayout = () => {
                 <div className="flex flex-col gap-2 md:gap-4 mt-2">
                     {/* Dashboard Home - All Roles */}
                     <NavLink
-                        to="/dashboard"
+                        to="/dashboard/home"
                         data-tooltip-id="dashTip"
                         data-tooltip-content="Dashboard"
                         className={({ isActive }) =>

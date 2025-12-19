@@ -90,7 +90,7 @@ const NavBar = () => {
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-md border border-red-200 z-50 flex flex-col">
                   <Link
-                    to="/dashboard"
+                    to="/dashboard/home"
                     className="px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
                     onClick={() => setUserMenuOpen(false)}
                   >
@@ -180,7 +180,7 @@ const NavBar = () => {
               {userMenuOpen && (
                 <div className="w-full flex flex-col mt-2">
                   <Link
-                    to="/dashboard"
+                    to="/dashboard/home"
                     className="px-4 py-2 text-gray-700 text-center hover:bg-red-50 hover:text-red-600"
                     onClick={() => { setMenuOpen(false); setUserMenuOpen(false); }}
                   >

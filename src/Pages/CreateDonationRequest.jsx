@@ -95,7 +95,23 @@ const CreateDonationRequest = () => {
             );
 
             showToast("Donation request created successfully", "success");
-            reset();
+
+            // Reset form but keep the read-only values
+            reset({
+                requesterName: user.displayName || "",
+                requesterEmail: user.email || "",
+                recipientName: "",
+                bloodGroup: "",
+                division: "",
+                district: "",
+                upazila: "",
+                donationDate: "",
+                donationTime: "",
+                hospitalName: "",
+                address: "",
+                message: ""
+            });
+
         } catch (err) {
             console.error(err);
             if (err.response?.status === 401) {
@@ -144,7 +160,7 @@ const CreateDonationRequest = () => {
                 {/* Recipient Name */}
                 <input
                     type="text"
-                    placeholder="Recipient Name"
+                    placeholder="Recipient Name (Mr. John Wick)"
                     className="px-4 py-3 border-2 border-red-300 focus:border-red-500 rounded-md outline-none"
                     {...register("recipientName", { required: true })}
                 />
@@ -218,14 +234,14 @@ const CreateDonationRequest = () => {
                 {/* Hospital Name */}
                 <input
                     type="text"
-                    placeholder="Hospital Name"
+                    placeholder="Hospital Name (ABC Hospital)"
                     className="px-4 py-3 border-2 border-red-300 focus:border-red-500 rounded-md outline-none md:col-span-2"
                     {...register("hospitalName", { required: true })}
                 />
 
                 {/* Hospital Address */}
                 <textarea
-                    placeholder="Hospital Address"
+                    placeholder="Hospital Address (Zahir Raihan Rd, Dhaka)"
                     rows={2}
                     className="px-4 py-3 border-2 border-red-300 focus:border-red-500 rounded-md outline-none resize-none md:col-span-2"
                     {...register("address", { required: true })}
