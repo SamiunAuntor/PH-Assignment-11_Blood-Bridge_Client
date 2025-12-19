@@ -4,7 +4,7 @@ import { MapPin, Mail, Droplets, Calendar, ShieldCheck, Edit2, Save, X } from "l
 import useAxios from "../Hooks/useAxios";
 import useAuth from "../Hooks/useAuth";
 import Loading from "../Components/Loading";
-import { getAuth, updateProfile } from "firebase/auth"; // Fixed: Direct import
+import { getAuth, updateProfile } from "firebase/auth";
 import Swal from "sweetalert2";
 import { uploadImageToImgBB } from "../Utilities/UploadImage";
 
@@ -85,7 +85,7 @@ const UserProfile = () => {
             const currentUser = auth.currentUser;
             const token = await currentUser.getIdToken();
 
-            // 1. Update Backend (MongoDB)
+            // Update Backend
             await axios.put(
                 "/dashboard/profile",
                 formData,
@@ -94,7 +94,7 @@ const UserProfile = () => {
                 }
             );
 
-            // 2. Update Firebase Auth Profile (Fixes the image issue)
+            // Update Firebase Auth Profile
             if (currentUser) {
                 await updateProfile(currentUser, {
                     displayName: formData.name,

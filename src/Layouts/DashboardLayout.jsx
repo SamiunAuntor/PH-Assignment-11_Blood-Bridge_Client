@@ -146,7 +146,14 @@ const DashboardLayout = () => {
                 </div>
             </aside>
 
-            <Tooltip id="dashTip" place="right" />
+            <Tooltip
+                id="dashTip"
+                place="right"
+                effect="solid"
+                portal={true}
+                className="!z-[9999]"
+            />
+
 
             {/* Content */}
             <main className="flex-1 p-6">

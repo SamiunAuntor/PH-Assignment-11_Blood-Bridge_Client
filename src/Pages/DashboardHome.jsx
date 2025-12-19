@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router";
-import { Eye, Edit3, Trash2, Users, DollarSign, Activity, CheckCircle, XCircle } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import {
+    Eye,
+    Edit3,
+    Trash2,
+    Users,
+    DollarSign,
+    Activity,
+    CheckCircle,
+    XCircle,
+    Clock,
+    CheckSquare
+} from "lucide-react";
 import { getAuth } from "firebase/auth";
 import Swal from "sweetalert2";
 import useRole from "../Hooks/useRole";
@@ -12,172 +23,243 @@ const DashboardHome = () => {
     const { role, isLoading } = useRole();
     const { user } = useAuth();
     const axios = useAxios();
+    const navigate = useNavigate();
 
     const [recentRequests, setRecentRequests] = useState([]);
-    const [stats, setStats] = useState({ totalUsers: 0, totalRequests: 0, totalFunding: 5200 });
+    const [stats, setStats] = useState({
+        totalUsers: 0,
+        totalRequests: 0,
+        totalFunding: 5200,
+        pendingRequests: 0,
+        doneRequests: 0,
+    });
     const [loadingData, setLoadingData] = useState(true);
     const [districts, setDistricts] = useState([]);
     const [upzillas, setUpzillas] = useState([]);
 
+    /* Load Location Data */
     useEffect(() => {
-        const fetchLocations = async () => {
-            try {
-                const [distRes, upzRes] = await Promise.all([
-                    fetch("/districts.json").then((res) => res.json()),
-                    fetch("/upzillas.json").then((res) => res.json()),
-                ]);
-                setDistricts(distRes);
-                setUpzillas(upzRes);
-            } catch (err) { console.error(err); }
-        };
-        fetchLocations();
+        Promise.all([
+            fetch("/districts.json").then((r) => r.json()),
+            fetch("/upzillas.json").then((r) => r.json()),
+        ]).then(([d, u]) => {
+            setDistricts(d);
+            setUpzillas(u);
+        });
     }, []);
 
     const decodeLocation = (districtId, upazilaId) => {
-        const district = districts.find((d) => String(d.id) === String(districtId));
-        const upazila = upzillas.find((u) => String(u.id) === String(upazilaId));
+        const district = districts.find((d) => `${d.id}` === `${districtId}`);
+        const upazila = upzillas.find((u) => `${u.id}` === `${upazilaId}`);
         return {
-            districtName: district ? district.name : districtId,
-            upazilaName: upazila ? upazila.name : upazilaId,
+            districtName: district?.name || districtId,
+            upazilaName: upazila?.name || upazilaId,
         };
     };
 
+    /* Fetch Data */
     const fetchData = async () => {
         if (!user || !role || districts.length === 0) return;
         setLoadingData(true);
+
         try {
-            const auth = getAuth();
-            const token = await auth.currentUser?.getIdToken();
+            const token = await getAuth().currentUser.getIdToken();
             const headers = { Authorization: `Bearer ${token}` };
 
-            // 1. Fetch Stats based on Role
-            if (role === "admin") {
-                const [usersRes, requestsRes] = await Promise.all([
-                    axios.get("/dashboard/all-users", { headers }),
-                    axios.get("/dashboard/all-blood-donation-request", { headers }),
-                ]);
-                setStats(prev => ({ ...prev, totalUsers: usersRes.data.total, totalRequests: requestsRes.data.total }));
-            } else if (role === "volunteer") {
-                const [userCountRes, requestsRes] = await Promise.all([
+            // Fetch Stats for Admin/Volunteer
+            if (role === "admin" || role === "volunteer") {
+                const [usersRes, reqRes] = await Promise.all([
                     axios.get("/dashboard/total-users-count", { headers }),
                     axios.get("/dashboard/all-blood-donation-request", { headers }),
                 ]);
-                setStats(prev => ({ ...prev, totalUsers: userCountRes.data.totalUsers, totalRequests: requestsRes.data.total }));
+
+                setStats((prev) => ({
+                    ...prev,
+                    totalUsers: usersRes.data.totalUsers,
+                    totalRequests: reqRes.data.total,
+                }));
             }
 
-            // 2. Fetch Recent Requests (Hierarchical: Admin/Vol see all, Donor sees mine)
-            const requestEndpoint = (role === "admin" || role === "volunteer")
-                ? "/dashboard/all-blood-donation-request"
-                : "/dashboard/my-donation-requests";
+            const endpoint =
+                role === "donor"
+                    ? "/dashboard/my-donation-requests"
+                    : "/dashboard/all-blood-donation-request";
 
-            const res = await axios.get(requestEndpoint, { headers });
-
-            // Handle different response structures if necessary (e.g., res.data.requests vs res.data)
+            const res = await axios.get(endpoint, { headers });
             const data = res.data.requests || res.data;
-            const decodedRequests = data.slice(0, 3).map((req) => {
-                const { districtName, upazilaName } = decodeLocation(req.recipientDistrict, req.recipientUpazila);
-                return { ...req, districtName, upazilaName };
-            });
-            setRecentRequests(decodedRequests);
 
-        } catch (err) { console.error(err); } finally { setLoadingData(false); }
-    };
-
-    useEffect(() => { fetchData(); }, [role, user, districts]);
-
-    const handleStatusUpdate = async (id, newStatus) => {
-        try {
-            const auth = getAuth();
-            const token = await auth.currentUser?.getIdToken();
-            await axios.put(`/dashboard/donation-request/${id}/status`, { status: newStatus }, { headers: { Authorization: `Bearer ${token}` } });
-            Swal.fire("Success", `Request marked as ${newStatus}`, "success");
-            fetchData();
-        } catch (err) { Swal.fire("Error", "Could not update status", "error"); }
-    };
-
-    const handleDelete = async (id) => {
-        Swal.fire({ title: "Are you sure?", text: "This cannot be undone!", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", cancelButtonColor: "#3085d6", confirmButtonText: "Yes, delete it!" }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    const auth = getAuth();
-                    const token = await auth.currentUser?.getIdToken();
-                    await axios.delete(`/dashboard/donation-request/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-                    Swal.fire("Deleted!", "Request has been removed.", "success");
-                    fetchData();
-                } catch (err) { Swal.fire("Error", "Delete failed", "error"); }
+            // Donor specific stats calculation
+            if (role === "donor") {
+                const pending = data.filter(r => r.status === 'pending').length;
+                const done = data.filter(r => r.status === 'done').length;
+                setStats(prev => ({
+                    ...prev,
+                    totalRequests: data.length,
+                    pendingRequests: pending,
+                    doneRequests: done
+                }));
             }
+
+            setRecentRequests(
+                data.slice(0, 3).map((r) => ({
+                    ...r,
+                    ...decodeLocation(r.recipientDistrict, r.recipientUpazila),
+                }))
+            );
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingData(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, [role, user, districts]);
+
+    /* Status Update */
+    const handleStatusUpdate = async (id, status) => {
+        const confirm = await Swal.fire({
+            title: "Update Status?",
+            text: `Do you want to mark this request as ${status}?`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: status === 'done' ? "#16a34a" : "#dc2626",
+            confirmButtonText: "Yes, Update",
         });
+
+        if (!confirm.isConfirmed) return;
+
+        try {
+            const token = await getAuth().currentUser.getIdToken();
+            const endpoint =
+                role === "donor"
+                    ? `/dashboard/my-donation-request/${id}/status`
+                    : `/dashboard/donation-request/${id}/status`;
+
+            await axios.put(
+                endpoint,
+                { status },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            await Swal.fire("Success", `Marked as ${status}`, "success");
+            fetchData();
+        } catch {
+            Swal.fire("Error", "Status update failed", "error");
+        }
+    };
+
+    /* DELETE */
+    const handleDelete = async (id) => {
+        const confirm = await Swal.fire({
+            title: "Are you sure?",
+            text: "This cannot be undone!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        });
+
+        if (!confirm.isConfirmed) return;
+
+        try {
+            const token = await getAuth().currentUser.getIdToken();
+            await axios.delete(`/dashboard/donation-request/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            await Swal.fire("Deleted!", "Request removed.", "success");
+            fetchData();
+        } catch {
+            Swal.fire("Error", "Delete failed", "error");
+        }
     };
 
     if (isLoading || loadingData) return <Loading />;
 
-    const getStatusStyles = (status) => {
-        switch (status?.toLowerCase()) {
-            case "pending": return "bg-orange-100 text-orange-700 border-orange-200";
-            case "inprogress": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-            case "done": return "bg-green-100 text-green-700 border-green-200";
-            case "canceled": return "bg-red-100 text-red-700 border-red-200";
-            default: return "bg-gray-100 text-gray-700";
-        }
-    };
+    const statusStyle = (s) =>
+    ({
+        pending: "bg-orange-100 text-orange-700 border-orange-200",
+        inprogress: "bg-yellow-100 text-yellow-700 border-yellow-200",
+        done: "bg-green-100 text-green-700 border-green-200",
+        canceled: "bg-red-100 text-red-700 border-red-200",
+    }[s] || "bg-gray-100 text-gray-700");
 
     return (
-        <div className="p-6 md:p-10 min-h-screen bg-transparent text-left">
+        <div className="p-6 md:p-10 min-h-screen bg-transparent">
             <div className="mb-10">
-                <h1 className="text-4xl font-black text-slate-800 tracking-tight">
-                    Welcome, <span className="text-red-600">{user?.displayName || user?.name}</span>!
+                <h1 className="text-4xl font-black text-slate-800">
+                    Welcome, <span className="text-red-600">{user?.displayName}</span>!
                 </h1>
-                <p className="text-slate-600 font-medium mt-1">BloodBridge {role} Dashboard</p>
+                <p className="text-slate-600 font-medium mt-1">
+                    BloodBridge {role} Dashboard
+                </p>
             </div>
 
-            {/* Stats Cards: Shown for Admin and Volunteer */}
-            {(role === "admin" || role === "volunteer") && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                    <StatCard icon={<Users className="text-blue-600" size={28} />} label="Total Users" value={stats.totalUsers} />
-                    <StatCard icon={<DollarSign className="text-green-600" size={28} />} label="Total Funding" value={`$${stats.totalFunding}`} />
-                    <StatCard icon={<Activity className="text-red-600" size={28} />} label="Donation Requests" value={stats.totalRequests} />
-                </div>
-            )}
+            {/* Stats Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                {role === "donor" ? (
+                    <>
+                        <StatCard icon={<Activity className="text-blue-600" />} label="My Total Requests" value={stats.totalRequests} />
+                        <StatCard icon={<Clock className="text-orange-600" />} label="Pending Requests" value={stats.pendingRequests} />
+                        <StatCard icon={<CheckSquare className="text-green-600" />} label="Successful Donations" value={stats.doneRequests} />
+                    </>
+                ) : (
+                    <>
+                        <StatCard icon={<Users className="text-red-600" />} label="Total Users" value={stats.totalUsers} />
+                        <StatCard icon={<DollarSign className="text-emerald-600" />} label="Total Funding" value={`$${stats.totalFunding}`} />
+                        <StatCard icon={<Activity className="text-blue-600" />} label="Donation Requests" value={stats.totalRequests} />
+                    </>
+                )}
+            </div>
 
-            {/* Table Section: Now shown for everyone (Hierarchical logic handled in fetchData) */}
             {recentRequests.length > 0 ? (
-                <div className="space-y-6">
-                    <h2 className="text-xl font-bold text-slate-700">
-                        {role === "donor" ? "My Recent Requests" : "Recent Global Requests"}
+                <div>
+                    <h2 className="text-xl font-bold text-slate-700 mb-4">
+                        Recent Requests
                     </h2>
-                    <div className="overflow-x-auto rounded-2xl border border-white/20 shadow-xl bg-white/40 backdrop-blur-md">
-                        <table className="min-w-full text-left border-collapse">
+
+                    {/* Scrollable Container for Table */}
+                    <div className="w-full overflow-x-auto border-0">
+                        <table className="min-w-full border-collapse bg-white">
                             <thead>
-                                <tr className="bg-white/50 text-slate-600 uppercase text-xs font-bold tracking-wider">
-                                    <th className="px-6 py-4">Recipient</th>
-                                    <th className="px-6 py-4">Location</th>
-                                    <th className="px-6 py-4">Blood</th>
-                                    <th className="px-6 py-4">Date/Time</th>
-                                    <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4">Actions</th>
+                                <tr className="text-center bg-gray-50">
+                                    <th className="px-4 py-3 border border-gray-200 font-bold text-xs uppercase text-slate-700">Recipient</th>
+                                    <th className="px-4 py-3 border border-gray-200 font-bold text-xs uppercase text-slate-700">Location</th>
+                                    <th className="px-4 py-3 border border-gray-200 font-bold text-xs uppercase text-slate-700">Blood</th>
+                                    <th className="px-4 py-3 border border-gray-200 font-bold text-xs uppercase text-slate-700">Date</th>
+                                    <th className="px-4 py-3 border border-gray-200 font-bold text-xs uppercase text-slate-700">Time</th>
+                                    <th className="px-4 py-3 border border-gray-200 font-bold text-xs uppercase text-slate-700">Status</th>
+                                    <th className="px-4 py-3 border border-gray-200 font-bold text-xs uppercase text-slate-700">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/20 text-slate-700">
-                                {recentRequests.map((req) => (
-                                    <tr key={req._id} className="hover:bg-white/30 transition-colors">
-                                        <td className="px-6 py-4 font-bold">{req.recipientName}</td>
-                                        <td className="px-6 py-4 text-sm">{req.upazilaName}, {req.districtName}</td>
-                                        <td className="px-6 py-4"><span className="text-red-600 font-black">{req.bloodGroup}</span></td>
-                                        <td className="px-6 py-4 text-xs font-medium">{req.donationDate} <br /> {req.donationTime}</td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold border uppercase ${getStatusStyles(req.status)}`}>
-                                                {req.status}
+                            <tbody className="text-center">
+                                {recentRequests.map((r) => (
+                                    <tr key={r._id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-3 border border-gray-200 text-sm font-medium">{r.recipientName}</td>
+                                        <td className="px-4 py-3 border border-gray-200 text-sm">
+                                            {r.upazilaName}, {r.districtName}
+                                        </td>
+                                        <td className="px-4 py-3 border border-gray-200 font-black text-red-600 text-sm">
+                                            {r.bloodGroup}
+                                        </td>
+                                        <td className="px-4 py-3 border border-gray-200 text-sm">{r.donationDate}</td>
+                                        <td className="px-4 py-3 border border-gray-200 text-sm">{r.donationTime}</td>
+                                        <td className="px-4 py-3 border border-gray-200">
+                                            <span className={`px-3 py-1 rounded-sm text-[10px] font-bold border ${statusStyle(r.status)} inline-block`}>
+                                                {r.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-1">
-                                                <Link to={`/dashboard/donation-request/${req._id}`} className="p-2 text-blue-600 hover:bg-white/60 rounded-full transition"><Eye size={18} /></Link>
-                                                <Link to={`/dashboard/edit-donation-request/${req._id}`} className="p-2 text-slate-600 hover:bg-white/60 rounded-full transition"><Edit3 size={18} /></Link>
-                                                <button onClick={() => handleDelete(req._id)} className="p-2 text-red-600 hover:bg-white/60 rounded-full transition"><Trash2 size={18} /></button>
-                                                {req.status === "inprogress" && (
-                                                    <div className="flex gap-1 ml-2">
-                                                        <button onClick={() => handleStatusUpdate(req._id, "done")} className="p-1.5 bg-green-600 text-white rounded-full hover:bg-green-700 shadow-lg"><CheckCircle size={14} /></button>
-                                                        <button onClick={() => handleStatusUpdate(req._id, "canceled")} className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"><XCircle size={14} /></button>
+                                        <td className="px-4 py-3 border border-gray-200">
+                                            <div className="flex items-center justify-center gap-1">
+                                                <Link to={`/dashboard/donation-request/${r._id}`} className="p-1.5 border border-gray-200 rounded-sm hover:bg-gray-100"><Eye size={16} /></Link>
+                                                <Link to={`/dashboard/edit-donation-request/${r._id}`} className="p-1.5 border border-gray-200 rounded-sm hover:bg-gray-100 text-blue-600"><Edit3 size={16} /></Link>
+                                                <button onClick={() => handleDelete(r._id)} className="p-1.5 border border-gray-200 rounded-sm hover:bg-gray-100 text-red-600"><Trash2 size={16} /></button>
+
+                                                {r.status === "inprogress" && (
+                                                    <div className="flex gap-1 ml-1 border-l pl-1 border-gray-200">
+                                                        <button onClick={() => handleStatusUpdate(r._id, "done")} className="p-1.5 bg-green-600 text-white rounded-sm hover:bg-green-700"><CheckCircle size={14} /></button>
+                                                        <button onClick={() => handleStatusUpdate(r._id, "canceled")} className="p-1.5 bg-red-600 text-white rounded-sm hover:bg-red-700"><XCircle size={14} /></button>
                                                     </div>
                                                 )}
                                             </div>
@@ -187,14 +269,22 @@ const DashboardHome = () => {
                             </tbody>
                         </table>
                     </div>
-                    <Link to={role === "donor" ? "/dashboard/my-donation-requests" : "/dashboard/all-blood-donation-request"}
-                        className="inline-block mt-4 px-8 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition shadow-lg shadow-red-200">
-                        View All Requests
-                    </Link>
+
+                    {/* See All Requests Button for Donor */}
+                    {role === "donor" && (
+                        <div className="mt-6 text-center">
+                            <button
+                                onClick={() => navigate('/dashboard/my-donation-requests')}
+                                className="px-8 py-3 bg-slate-800 text-white font-bold text-sm rounded-md shadow-lg hover:bg-slate-900 transition-all uppercase tracking-widest"
+                            >
+                                See All My Requests
+                            </button>
+                        </div>
+                    )}
                 </div>
             ) : (
-                <div className="p-12 text-center bg-white/30 backdrop-blur-md rounded-2xl border-2 border-dashed border-slate-300">
-                    <p className="text-slate-500 font-medium italic">No donation requests found.</p>
+                <div className="p-12 text-center bg-white/30 rounded-lg border-dashed border-2 border-gray-300">
+                    No donation requests found.
                 </div>
             )}
         </div>
@@ -202,11 +292,11 @@ const DashboardHome = () => {
 };
 
 const StatCard = ({ icon, label, value }) => (
-    <div className="p-8 bg-white/40 backdrop-blur-md border border-white/40 rounded-3xl flex items-center gap-6 shadow-sm hover:shadow-md transition-all">
-        <div className="p-4 bg-white/80 rounded-2xl shadow-inner">{icon}</div>
+    <div className="p-8 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100 shadow-sm flex items-center gap-6">
+        <div className="p-4 bg-white rounded-lg shadow-inner">{icon}</div>
         <div>
             <p className="text-3xl font-black text-slate-800">{value}</p>
-            <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.2em]">{label}</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">{label}</p>
         </div>
     </div>
 );
