@@ -249,7 +249,7 @@ const CreateDonationRequest = () => {
 
                 {/* Additional Message */}
                 <textarea
-                    placeholder="Additional Message (optional)"
+                    placeholder="Why do you need the blood? (optional)"
                     rows={2}
                     className="px-4 py-3 border-2 border-red-300 focus:border-red-500 rounded-md outline-none resize-none md:col-span-2"
                     {...register("message")}

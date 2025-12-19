@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { Eye, Edit3, Trash2, Users, DollarSign, Activity, CheckCircle, XCircle, User } from "lucide-react";
+import { Eye, Edit3, Trash2, Users, DollarSign, Activity, CheckCircle, XCircle } from "lucide-react";
 import { getAuth } from "firebase/auth";
-import Swal from "sweetalert2"; 
+import Swal from "sweetalert2";
 import useRole from "../Hooks/useRole";
 import useAxios from "../Hooks/useAxios";
 import useAuth from "../Hooks/useAuth";
@@ -14,7 +14,7 @@ const DashboardHome = () => {
     const axios = useAxios();
 
     const [recentRequests, setRecentRequests] = useState([]);
-    const [stats, setStats] = useState({ totalUsers: 0, totalRequests: 0, totalFunding: 5200 }); // Static funding for now
+    const [stats, setStats] = useState({ totalUsers: 0, totalRequests: 0, totalFunding: 5200 });
     const [loadingData, setLoadingData] = useState(true);
     const [districts, setDistricts] = useState([]);
     const [upzillas, setUpzillas] = useState([]);
@@ -28,9 +28,7 @@ const DashboardHome = () => {
                 ]);
                 setDistricts(distRes);
                 setUpzillas(upzRes);
-            } catch (err) {
-                console.error("Error loading locations:", err);
-            }
+            } catch (err) { console.error(err); }
         };
         fetchLocations();
     }, []);
@@ -47,104 +45,66 @@ const DashboardHome = () => {
     const fetchData = async () => {
         if (!user || !role || districts.length === 0) return;
         setLoadingData(true);
-
         try {
             const auth = getAuth();
             const token = await auth.currentUser?.getIdToken();
             const headers = { Authorization: `Bearer ${token}` };
 
-            if (role === "donor") {
-                const res = await axios.get("/dashboard/my-donation-requests", { headers });
-
-                const decodedRequests = res.data.requests.slice(0, 3).map((req) => {
-                    const { districtName, upazilaName } = decodeLocation(
-                        req.recipientDistrict,
-                        req.recipientUpazila
-                    );
-                    return { ...req, districtName, upazilaName };
-                });
-
-                setRecentRequests(decodedRequests);
-            }
-
-            // ADMIN
+            // 1. Fetch Stats based on Role
             if (role === "admin") {
                 const [usersRes, requestsRes] = await Promise.all([
                     axios.get("/dashboard/all-users", { headers }),
                     axios.get("/dashboard/all-blood-donation-request", { headers }),
                 ]);
-
-                setStats((prev) => ({
-                    ...prev,
-                    totalUsers: usersRes.data.total,
-                    totalRequests: requestsRes.data.total,
-                }));
+                setStats(prev => ({ ...prev, totalUsers: usersRes.data.total, totalRequests: requestsRes.data.total }));
+            } else if (role === "volunteer") {
+                const [userCountRes, requestsRes] = await Promise.all([
+                    axios.get("/dashboard/total-users-count", { headers }),
+                    axios.get("/dashboard/all-blood-donation-request", { headers }),
+                ]);
+                setStats(prev => ({ ...prev, totalUsers: userCountRes.data.totalUsers, totalRequests: requestsRes.data.total }));
             }
 
-            // VOLUNTEER
-            if (role === "volunteer") {
-                const requestsRes = await axios.get(
-                    "/dashboard/all-blood-donation-request",
-                    { headers }
-                );
+            // 2. Fetch Recent Requests (Hierarchical: Admin/Vol see all, Donor sees mine)
+            const requestEndpoint = (role === "admin" || role === "volunteer")
+                ? "/dashboard/all-blood-donation-request"
+                : "/dashboard/my-donation-requests";
 
-                setStats((prev) => ({
-                    ...prev,
-                    totalRequests: requestsRes.data.total,
-                }));
-            }
+            const res = await axios.get(requestEndpoint, { headers });
 
-        } catch (err) {
-            console.error("Dashboard fetch error:", err);
-        } finally {
-            setLoadingData(false);
-        }
+            // Handle different response structures if necessary (e.g., res.data.requests vs res.data)
+            const data = res.data.requests || res.data;
+            const decodedRequests = data.slice(0, 3).map((req) => {
+                const { districtName, upazilaName } = decodeLocation(req.recipientDistrict, req.recipientUpazila);
+                return { ...req, districtName, upazilaName };
+            });
+            setRecentRequests(decodedRequests);
+
+        } catch (err) { console.error(err); } finally { setLoadingData(false); }
     };
 
+    useEffect(() => { fetchData(); }, [role, user, districts]);
 
-    useEffect(() => {
-        fetchData();
-    }, [role, user, districts]);
-
-    // Handle Status Change (Done/Cancel)
     const handleStatusUpdate = async (id, newStatus) => {
         try {
             const auth = getAuth();
             const token = await auth.currentUser?.getIdToken();
-            await axios.put(`/dashboard/donation-request/${id}/status`,
-                { status: newStatus },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await axios.put(`/dashboard/donation-request/${id}/status`, { status: newStatus }, { headers: { Authorization: `Bearer ${token}` } });
             Swal.fire("Success", `Request marked as ${newStatus}`, "success");
-            fetchData(); // Refresh list
-        } catch (err) {
-            Swal.fire("Error", "Could not update status", "error");
-        }
+            fetchData();
+        } catch (err) { Swal.fire("Error", "Could not update status", "error"); }
     };
 
-    // Handle Delete
     const handleDelete = async (id) => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "You won't be able to revert this!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Yes, delete it!"
-        }).then(async (result) => {
+        Swal.fire({ title: "Are you sure?", text: "This cannot be undone!", icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", cancelButtonColor: "#3085d6", confirmButtonText: "Yes, delete it!" }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
                     const auth = getAuth();
                     const token = await auth.currentUser?.getIdToken();
-                    await axios.delete(`/dashboard/donation-request/${id}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    Swal.fire("Deleted!", "Your request has been deleted.", "success");
+                    await axios.delete(`/dashboard/donation-request/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+                    Swal.fire("Deleted!", "Request has been removed.", "success");
                     fetchData();
-                } catch (err) {
-                    Swal.fire("Error", "Delete failed", "error");
-                }
+                } catch (err) { Swal.fire("Error", "Delete failed", "error"); }
             }
         });
     };
@@ -162,85 +122,62 @@ const DashboardHome = () => {
     };
 
     return (
-        <div className="p-6 md:p-10 min-h-screen bg-white text-left">
+        <div className="p-6 md:p-10 min-h-screen bg-transparent text-left">
             <div className="mb-10">
-                <h1 className="text-4xl font-extrabold text-slate-800 tracking-tight">
+                <h1 className="text-4xl font-black text-slate-800 tracking-tight">
                     Welcome, <span className="text-red-600">{user?.displayName || user?.name}</span>!
                 </h1>
-                <p className="text-slate-500 mt-2">BloodBridge {role} Dashboard</p>
+                <p className="text-slate-600 font-medium mt-1">BloodBridge {role} Dashboard</p>
             </div>
 
-            {role === "donor" && recentRequests.length > 0 ? (
+            {/* Stats Cards: Shown for Admin and Volunteer */}
+            {(role === "admin" || role === "volunteer") && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <StatCard icon={<Users className="text-blue-600" size={28} />} label="Total Users" value={stats.totalUsers} />
+                    <StatCard icon={<DollarSign className="text-green-600" size={28} />} label="Total Funding" value={`$${stats.totalFunding}`} />
+                    <StatCard icon={<Activity className="text-red-600" size={28} />} label="Donation Requests" value={stats.totalRequests} />
+                </div>
+            )}
+
+            {/* Table Section: Now shown for everyone (Hierarchical logic handled in fetchData) */}
+            {recentRequests.length > 0 ? (
                 <div className="space-y-6">
-                    <h2 className="text-xl font-bold text-slate-700">3 Recent Donation Requests</h2>
-                    <div className="overflow-x-auto -mx-6 md:mx-0 rounded-xl border border-slate-200 shadow-sm">
-                        <div className="inline-block min-w-full align-middle px-6 md:px-0">
-                            <table className="min-w-full text-left border-collapse">
+                    <h2 className="text-xl font-bold text-slate-700">
+                        {role === "donor" ? "My Recent Requests" : "Recent Global Requests"}
+                    </h2>
+                    <div className="overflow-x-auto rounded-2xl border border-white/20 shadow-xl bg-white/40 backdrop-blur-md">
+                        <table className="min-w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50 text-slate-600 uppercase text-xs font-bold tracking-wider">
-                                    <th className="px-4 py-4">#</th>
-                                    <th className="px-4 py-4">Recipient</th>
-                                    <th className="px-4 py-4">Location</th>
-                                    <th className="px-4 py-4">Blood</th>
-                                    <th className="px-4 py-4">Date/Time</th>
-                                    <th className="px-4 py-4">Status</th>
-                                    <th className="px-4 py-4">Donor Info</th>
-                                    <th className="px-4 py-4">Actions</th>
+                                <tr className="bg-white/50 text-slate-600 uppercase text-xs font-bold tracking-wider">
+                                    <th className="px-6 py-4">Recipient</th>
+                                    <th className="px-6 py-4">Location</th>
+                                    <th className="px-6 py-4">Blood</th>
+                                    <th className="px-6 py-4">Date/Time</th>
+                                    <th className="px-6 py-4">Status</th>
+                                    <th className="px-6 py-4">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 text-slate-700">
-                                {recentRequests.map((req, index) => (
-                                    <tr key={req._id} className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-4 font-medium text-slate-400">{index + 1}</td>
-                                        <td className="px-4 py-4 font-semibold">{req.recipientName}</td>
-                                        <td className="px-4 py-4 text-sm">
-                                            {req.upazilaName}, {req.districtName}
-                                        </td>
-                                        <td className="px-4 py-4">
-                                            <span className="bg-red-50 text-red-600 px-2 py-1 rounded-md text-xs font-bold">
-                                                {req.bloodGroup}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-4 text-xs">
-                                            {req.donationDate} <br /> {req.donationTime}
-                                        </td>
-                                        <td className="px-4 py-4">
-                                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold border uppercase ${getStatusStyles(req.status)}`}>
+                            <tbody className="divide-y divide-white/20 text-slate-700">
+                                {recentRequests.map((req) => (
+                                    <tr key={req._id} className="hover:bg-white/30 transition-colors">
+                                        <td className="px-6 py-4 font-bold">{req.recipientName}</td>
+                                        <td className="px-6 py-4 text-sm">{req.upazilaName}, {req.districtName}</td>
+                                        <td className="px-6 py-4"><span className="text-red-600 font-black">{req.bloodGroup}</span></td>
+                                        <td className="px-6 py-4 text-xs font-medium">{req.donationDate} <br /> {req.donationTime}</td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold border uppercase ${getStatusStyles(req.status)}`}>
                                                 {req.status}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-4 text-xs">
-                                            {req.status === "inprogress" ? (
-                                                <div className="text-slate-600">
-                                                    <p className="font-bold">{req.donorName || "Assigned"}</p>
-                                                    <p>{req.donorEmail || "Contacting..."}</p>
-                                                </div>
-                                            ) : "---"}
-                                        </td>
-                                        <td className="px-4 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <Link to={`/dashboard/donation-request/${req._id}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
-                                                    <Eye size={18} />
-                                                </Link>
-                                                <Link to={`/dashboard/edit-donation-request/${req._id}`} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
-                                                    <Edit3 size={18} />
-                                                </Link>
-                                                <button onClick={() => handleDelete(req._id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
-                                                    <Trash2 size={18} />
-                                                </button>
-
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-1">
+                                                <Link to={`/dashboard/donation-request/${req._id}`} className="p-2 text-blue-600 hover:bg-white/60 rounded-full transition"><Eye size={18} /></Link>
+                                                <Link to={`/dashboard/edit-donation-request/${req._id}`} className="p-2 text-slate-600 hover:bg-white/60 rounded-full transition"><Edit3 size={18} /></Link>
+                                                <button onClick={() => handleDelete(req._id)} className="p-2 text-red-600 hover:bg-white/60 rounded-full transition"><Trash2 size={18} /></button>
                                                 {req.status === "inprogress" && (
-                                                    <div className="flex flex-col gap-1 ml-2">
-                                                        <button
-                                                            onClick={() => handleStatusUpdate(req._id, "done")}
-                                                            className="flex items-center justify-center p-1 bg-green-600 text-white rounded hover:bg-green-700" title="Done">
-                                                            <CheckCircle size={14} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleStatusUpdate(req._id, "canceled")}
-                                                            className="flex items-center justify-center p-1 bg-red-600 text-white rounded hover:bg-red-700" title="Cancel">
-                                                            <XCircle size={14} />
-                                                        </button>
+                                                    <div className="flex gap-1 ml-2">
+                                                        <button onClick={() => handleStatusUpdate(req._id, "done")} className="p-1.5 bg-green-600 text-white rounded-full hover:bg-green-700 shadow-lg"><CheckCircle size={14} /></button>
+                                                        <button onClick={() => handleStatusUpdate(req._id, "canceled")} className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"><XCircle size={14} /></button>
                                                     </div>
                                                 )}
                                             </div>
@@ -248,24 +185,16 @@ const DashboardHome = () => {
                                     </tr>
                                 ))}
                             </tbody>
-                            </table>
-                        </div>
+                        </table>
                     </div>
-                    <Link to="/dashboard/my-donation-requests" className="inline-block mt-4 px-6 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors shadow-md">
-                        View All My Requests
+                    <Link to={role === "donor" ? "/dashboard/my-donation-requests" : "/dashboard/all-blood-donation-request"}
+                        className="inline-block mt-4 px-8 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition shadow-lg shadow-red-200">
+                        View All Requests
                     </Link>
                 </div>
-            ) : role === "donor" && (
-                <div className="p-10 text-center bg-slate-50 rounded-xl border-2 border-dashed">
-                    <p className="text-slate-500">You haven't made any donation requests yet.</p>
-                </div>
-            )}
-
-            {(role === "admin" || role === "volunteer") && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-                    <StatCard icon={<Users className="text-blue-600" size={28} />} label="Total Donors" value={stats.totalUsers} />
-                    <StatCard icon={<DollarSign className="text-green-600" size={28} />} label="Total Funding" value={`$${stats.totalFunding}`} />
-                    <StatCard icon={<Activity className="text-red-600" size={28} />} label="Donation Requests" value={stats.totalRequests} />
+            ) : (
+                <div className="p-12 text-center bg-white/30 backdrop-blur-md rounded-2xl border-2 border-dashed border-slate-300">
+                    <p className="text-slate-500 font-medium italic">No donation requests found.</p>
                 </div>
             )}
         </div>
@@ -273,11 +202,11 @@ const DashboardHome = () => {
 };
 
 const StatCard = ({ icon, label, value }) => (
-    <div className="p-6 bg-slate-50 border border-slate-100 rounded-xl flex items-center gap-5">
-        <div className="p-4 bg-white rounded-lg shadow-sm">{icon}</div>
+    <div className="p-8 bg-white/40 backdrop-blur-md border border-white/40 rounded-3xl flex items-center gap-6 shadow-sm hover:shadow-md transition-all">
+        <div className="p-4 bg-white/80 rounded-2xl shadow-inner">{icon}</div>
         <div>
-            <p className="text-2xl font-black text-slate-800">{value}</p>
-            <p className="text-slate-500 font-medium text-xs uppercase tracking-widest">{label}</p>
+            <p className="text-3xl font-black text-slate-800">{value}</p>
+            <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.2em]">{label}</p>
         </div>
     </div>
 );

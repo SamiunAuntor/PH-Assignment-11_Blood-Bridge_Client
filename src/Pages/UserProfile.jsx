@@ -4,7 +4,7 @@ import { MapPin, Mail, Droplets, Calendar, ShieldCheck, Edit2, Save, X } from "l
 import useAxios from "../Hooks/useAxios";
 import useAuth from "../Hooks/useAuth";
 import Loading from "../Components/Loading";
-import { getAuth } from "firebase/auth";
+import { getAuth, updateProfile } from "firebase/auth"; // Fixed: Direct import
 import Swal from "sweetalert2";
 import { uploadImageToImgBB } from "../Utilities/UploadImage";
 
@@ -82,8 +82,10 @@ const UserProfile = () => {
         try {
             setSaving(true);
             const auth = getAuth();
-            const token = await auth.currentUser.getIdToken();
+            const currentUser = auth.currentUser;
+            const token = await currentUser.getIdToken();
 
+            // 1. Update Backend (MongoDB)
             await axios.put(
                 "/dashboard/profile",
                 formData,
@@ -92,16 +94,14 @@ const UserProfile = () => {
                 }
             );
 
-            // Update Firebase profile photoURL if avatar changed
-            if (formData.avatar && user) {
-                try {
-                    const { updateProfile } = await import("firebase/auth");
-                    await updateProfile(auth.currentUser, {
-                        photoURL: formData.avatar,
-                    });
-                } catch (firebaseErr) {
-                    console.error("Firebase profile update error:", firebaseErr);
-                }
+            // 2. Update Firebase Auth Profile (Fixes the image issue)
+            if (currentUser) {
+                await updateProfile(currentUser, {
+                    displayName: formData.name,
+                    photoURL: formData.avatar,
+                });
+                // Force refresh local user object
+                await currentUser.reload();
             }
 
             Swal.fire("Success", "Profile updated successfully", "success");
@@ -241,7 +241,7 @@ const UserProfile = () => {
                     ) : (
                         <div className="flex items-center gap-4 p-4 bg-red-50 rounded-xl border border-red-100 h-full">
                             <div className="p-3 bg-red-600 rounded-lg text-white">
-                                <Droplets size={24} />
+                                <span className="flex items-center justify-center"><Droplets size={24} /></span>
                             </div>
                             <div>
                                 <p className="text-sm text-red-800 font-medium">Blood Group</p>
@@ -310,7 +310,7 @@ const UserProfile = () => {
                                                     try {
                                                         const url = await uploadImageToImgBB(file);
                                                         setFormData({ ...formData, avatar: url });
-                                                        Swal.fire("Success", "Image uploaded successfully", "success");
+                                                        Swal.fire({ icon: "success", title: "Uploaded!", timer: 1000, showConfirmButton: false });
                                                     } catch (err) {
                                                         Swal.fire("Error", "Failed to upload image", "error");
                                                     }
@@ -380,7 +380,7 @@ const UserProfile = () => {
     );
 };
 
-// Card component (one time use, defined here for simplicity)
+// Card component
 const Card = ({ title, children }) => (
     <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
         <h3 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">{title}</h3>
