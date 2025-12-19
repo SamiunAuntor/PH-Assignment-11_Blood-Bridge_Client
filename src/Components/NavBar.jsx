@@ -102,7 +102,7 @@ const NavBar = () => {
                   </Link>
                   <button
                     onClick={() => { logoutUser(); setUserMenuOpen(false); }}
-                    className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-b-md"
+                    className="px-4 py-2 text-white bg-red-500 hover:bg-red-600 rounded-b-md"
                   >
                     Logout
                   </button>
@@ -113,14 +113,20 @@ const NavBar = () => {
             <>
               <NavLink
                 to="/login"
-                className={navLinkClass + " px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"}
+                className={({ isActive }) =>
+                  `px-4 py-2 rounded-md text-white transition-colors duration-200 ${isActive ? "bg-red-600" : "bg-red-500 hover:bg-red-500"
+                  }`
+                }
               >
                 Login
               </NavLink>
 
               <NavLink
                 to="/register"
-                className={navLinkClass + " px-4 py-2 bg-white text-red-600 border border-red-600 rounded-md hover:bg-red-50"}
+                className={({ isActive }) =>
+                  `px-4 py-2 bg-white text-red-600 border border-red-600 rounded-md hover:bg-red-50 transition-colors duration-200 ${isActive ? "bg-red-50 text-red-600" : ""
+                  }`
+                }
               >
                 Register
               </NavLink>
@@ -134,7 +140,6 @@ const NavBar = () => {
           place="bottom"
           className="!z-[9999]"
         />
-
 
       </div> {/* End of main nav div */}
 
@@ -201,7 +206,7 @@ const NavBar = () => {
                   </Link>
                   <button
                     onClick={() => { logoutUser(); setMenuOpen(false); setUserMenuOpen(false); }}
-                    className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-b-md"
+                    className="px-4 py-2 text-white bg-red-500 hover:bg-red-600 rounded-b-md"
                   >
                     Logout
                   </button>
@@ -215,7 +220,7 @@ const NavBar = () => {
               <NavLink
                 to="/login"
                 className={({ isActive }) =>
-                  `w-full text-center px-4 py-2 rounded-md text-white bg-red-600 transition-colors duration-200 ${isActive ? "bg-red-700" : "hover:bg-red-700"
+                  `w-full text-center px-4 py-2 rounded-md text-white transition-colors duration-200 ${isActive ? "bg-red-500" : "bg-red-500 hover:bg-red-600"
                   }`
                 }
                 onClick={() => setMenuOpen(false)}
