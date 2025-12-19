@@ -12,6 +12,10 @@ const NavBar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
+  const navLinkClass = ({ isActive }) =>
+    `text-gray-700 bg-white p-2 rounded-md transition-colors duration-200 ${isActive ? "text-red-600 bg-red-50" : "hover:text-red-600 hover:bg-red-50"
+    }`;
+
   return (
     <nav className="w-full bg-red-100 shadow-sm">
       <div className="w-11/12 mx-auto flex justify-between items-center py-3">
@@ -44,7 +48,7 @@ const NavBar = () => {
             to="/"
             data-tooltip-id="navTip"
             data-tooltip-content="Home"
-            className="text-gray-700 bg-white hover:text-red-600 p-2 rounded-md"
+            className={navLinkClass}
           >
             <FaHome size={26} />
           </NavLink>
@@ -54,7 +58,7 @@ const NavBar = () => {
             to="/donation-requests"
             data-tooltip-id="navTip"
             data-tooltip-content="Donation Requests"
-            className="text-gray-700 bg-white hover:text-red-600 p-2 rounded-md"
+            className={navLinkClass}
           >
             <BiSolidDonateBlood size={28} />
           </NavLink>
@@ -65,7 +69,7 @@ const NavBar = () => {
               to="/funding"
               data-tooltip-id="navTip"
               data-tooltip-content="Funding"
-              className="text-gray-700 bg-white hover:text-red-600 p-2 rounded-md"
+              className={navLinkClass}
             >
               <FaDonate size={26} />
             </NavLink>
@@ -109,14 +113,14 @@ const NavBar = () => {
             <>
               <NavLink
                 to="/login"
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200"
+                className={navLinkClass + " px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"}
               >
                 Login
               </NavLink>
 
               <NavLink
                 to="/register"
-                className="px-4 py-2 bg-white text-red-600 border border-red-600 rounded-md hover:bg-red-50 transition-colors duration-200"
+                className={navLinkClass + " px-4 py-2 bg-white text-red-600 border border-red-600 rounded-md hover:bg-red-50"}
               >
                 Register
               </NavLink>
@@ -128,7 +132,7 @@ const NavBar = () => {
         <Tooltip
           id="navTip"
           place="bottom"
-          className="!z-[9999]"  // ensures tooltip is above other elements
+          className="!z-[9999]"
         />
 
 
@@ -140,7 +144,10 @@ const NavBar = () => {
           {/* Home */}
           <NavLink
             to="/"
-            className="w-full text-center p-2 rounded-md text-gray-700 hover:bg-red-50 hover:text-red-600"
+            className={({ isActive }) =>
+              `w-full text-center p-2 rounded-md text-gray-700 transition-colors duration-200 ${isActive ? "text-red-600 bg-red-50" : "hover:text-red-600 hover:bg-red-50"
+              }`
+            }
             onClick={() => setMenuOpen(false)}
           >
             Home
@@ -148,7 +155,10 @@ const NavBar = () => {
 
           <NavLink
             to="/donation-requests"
-            className="w-full text-center p-2 rounded-md text-gray-700 hover:bg-red-50 hover:text-red-600"
+            className={({ isActive }) =>
+              `w-full text-center p-2 rounded-md text-gray-700 transition-colors duration-200 ${isActive ? "text-red-600 bg-red-50" : "hover:text-red-600 hover:bg-red-50"
+              }`
+            }
             onClick={() => setMenuOpen(false)}
           >
             Donation Requests
@@ -157,7 +167,10 @@ const NavBar = () => {
           {user && (
             <NavLink
               to="/funding"
-              className="w-full text-center p-2 rounded-md text-gray-700 hover:bg-red-50 hover:text-red-600"
+              className={({ isActive }) =>
+                `w-full text-center p-2 rounded-md text-gray-700 transition-colors duration-200 ${isActive ? "text-red-600 bg-red-50" : "hover:text-red-600 hover:bg-red-50"
+                }`
+              }
               onClick={() => setMenuOpen(false)}
             >
               Funding
@@ -201,7 +214,10 @@ const NavBar = () => {
             <>
               <NavLink
                 to="/login"
-                className="w-full text-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200"
+                className={({ isActive }) =>
+                  `w-full text-center px-4 py-2 rounded-md text-white bg-red-600 transition-colors duration-200 ${isActive ? "bg-red-700" : "hover:bg-red-700"
+                  }`
+                }
                 onClick={() => setMenuOpen(false)}
               >
                 Login
@@ -209,7 +225,10 @@ const NavBar = () => {
 
               <NavLink
                 to="/register"
-                className="w-full text-center px-4 py-2 bg-white text-red-600 border border-red-600 rounded-md hover:bg-red-50 transition-colors duration-200"
+                className={({ isActive }) =>
+                  `w-full text-center px-4 py-2 rounded-md text-red-600 border border-red-600 bg-white transition-colors duration-200 ${isActive ? "bg-red-50 text-red-600" : "hover:bg-red-50"
+                  }`
+                }
                 onClick={() => setMenuOpen(false)}
               >
                 Register

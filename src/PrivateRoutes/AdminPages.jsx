@@ -32,7 +32,9 @@ const AdminPages = ({ children }) => {
         }
     }, [user, loading, role, isLoading, navigate, logoutUser]);
 
-    if (loading || isLoading) return <Loading />;
+    if (loading || isLoading) return <div className="min-h-screen flex items-center justify-center ">
+        <Loading />
+    </div>;
     if (!user) return null;
 
     // Only render children if user is admin

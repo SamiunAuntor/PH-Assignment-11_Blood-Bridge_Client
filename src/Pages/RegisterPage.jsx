@@ -12,6 +12,7 @@ import useAxios from "../Hooks/useAxios";
 
 const RegisterPage = () => {
     const axios = useAxios();
+    const [registering, setRegistering] = useState(false);
     const { registerUserWithEmailPassword, loading } = useAuth();
     const { register, handleSubmit, watch, formState: { errors }, reset } = useForm();
     const navigate = useNavigate();
@@ -53,52 +54,49 @@ const RegisterPage = () => {
         const { email, password, name } = data;
 
         try {
+            setRegistering(true); // show loading overlay
             const { user } = await registerUserWithEmailPassword(email, password);
 
-            showToast(`Welcome, ${name}!`, "success");
+            let avatarURL = null;
+
+            // Upload avatar if exists
+            if (avatarFile) {
+                avatarURL = await uploadImageToImgBB(avatarFile);
+            }
+
+            // Update Firebase profile
+            await updateProfile(user, {
+                displayName: name,
+                photoURL: avatarURL || null,
+            });
+
+            // Update backend database
+            await axios.post("/register-user", {
+                name,
+                email,
+                bloodGroup: data.bloodGroup,
+                division: data.division,
+                district: data.district,
+                upazila: data.upazila,
+                avatar: avatarURL || null,
+            });
+
+            showToast(`Welcome, ${name}! Registration successful.`, "success");
             reset();
-            navigate("/"); // immediate navigation for better UX
-
-            // Background sync
-            (async () => {
-                try {
-                    let avatarURL = null;
-
-                    if (avatarFile) {
-                        avatarURL = await uploadImageToImgBB(avatarFile);
-                    }
-
-                    await updateProfile(user, {
-                        displayName: name,
-                        photoURL: avatarURL || null,
-                    });
-
-                    await axios.post("/register-user", {
-                        name,
-                        email,
-                        bloodGroup: data.bloodGroup,
-                        district: data.district,
-                        upazila: data.upazila,
-                        avatar: avatarURL || null,
-                    });
-
-                } catch (err) {
-                    console.error("Background sync failed:", err);
-                }
-            })();
-
+            navigate("/"); // Navigate after everything is done
 
         } catch (err) {
-            // Conditional toast for already registered user
             if (err.message.includes("email-already-in-use")) {
                 showToast("This email is already registered. Please login.", "error");
             } else {
                 showToast("Registration failed. Please try again.", "error");
+                console.error(err);
             }
         } finally {
-            setFormLoading(false);
+            setRegistering(false); // hide loading overlay
         }
     };
+
 
     // Early return for loading
     if (pageLoading || formLoading) {
@@ -112,9 +110,15 @@ const RegisterPage = () => {
 
     return (
         <div className="my-0 flex flex-col md:flex-row">
-            <div className="w-full md:w-7/10 h-64 md:h-auto hidden md:block">
+            <div className="w-full md:w-7/10 h-64 md:h-auto hidden md:block relative">
                 <img src={registerImage} alt="Register" className="w-full h-full object-contain" />
+                {registering && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <p className="text-white text-xl font-bold animate-pulse">Registering...</p>
+                    </div>
+                )}
             </div>
+
 
             <div className="w-full md:w-3/10 flex items-center justify-center p-6 md:p-12 bg-white">
                 <div className="w-full max-w-md">

@@ -14,7 +14,9 @@ const ProtectedRoute = ({ children }) => {
         }
     }, [user, loading, navigate]);
 
-    if (loading) return <Loading />;
+    if (loading) return <div className="min-h-screen flex items-center justify-center ">
+        <Loading />
+    </div>;
     if (!user) return null;
 
     return <>{children}</>;
