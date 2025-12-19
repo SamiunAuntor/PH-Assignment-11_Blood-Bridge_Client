@@ -131,7 +131,9 @@ const MyAllDonationRequests = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             Swal.fire("Deleted!", "Request has been removed.", "success");
-            setPage(1);
+            setRequests((prev) => prev.filter(r => r._id !== id));
+            setTotal(prev => prev - 1);
+
         } catch {
             Swal.fire("Error", "Delete failed", "error");
         }
@@ -150,26 +152,41 @@ const MyAllDonationRequests = () => {
     return (
         <div className="p-6 md:p-10 min-h-screen bg-transparent">
             <h1 className="text-4xl font-black text-slate-800 mb-6">
-                My Donation Requests 🩸
+                My Donation Requests 🩸📄
             </h1>
 
             {/* Filter */}
-            <div className="mb-6">
-                <select
-                    className="border px-3 py-2 rounded shadow-sm"
-                    value={status}
-                    onChange={(e) => {
-                        setStatus(e.target.value);
-                        setPage(1);
-                    }}
-                >
-                    <option value="">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="inprogress">In Progress</option>
-                    <option value="done">Done</option>
-                    <option value="canceled">Canceled</option>
-                </select>
+            <div className="mb-6 flex">
+                <div className="relative inline-block w-48 ml-auto">
+                    <select
+                        className="border border-gray-300 px-3 py-2 rounded shadow-sm font-semibold w-full appearance-none"
+                        value={status}
+                        onChange={(e) => {
+                            setStatus(e.target.value);
+                            setPage(1);
+                        }}
+                    >
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="inprogress">In Progress</option>
+                        <option value="done">Done</option>
+                        <option value="canceled">Canceled</option>
+                    </select>
+                    {/* Down arrow icon */}
+                    <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+                        <svg
+                            className="w-4 h-4 text-gray-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </div>
             </div>
+
 
             {/* Table */}
             {requests.length > 0 ? (

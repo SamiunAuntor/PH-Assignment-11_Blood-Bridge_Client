@@ -189,7 +189,7 @@ const DashboardHome = () => {
         <div className="p-6 md:p-10 min-h-screen bg-transparent">
             <div className="mb-10">
                 <h1 className="text-4xl font-black text-slate-800">
-                    Welcome, <span className="text-red-600">{user?.displayName}</span>!
+                    Welcome, <span className="text-red-600">{user?.displayName}</span>! 👋😃
                 </h1>
                 <p className="text-slate-600 font-medium mt-1">
                     BloodBridge {role} Dashboard
