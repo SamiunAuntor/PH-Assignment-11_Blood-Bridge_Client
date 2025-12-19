@@ -263,8 +263,14 @@ const DashboardHome = () => {
                                         <td className="px-4 py-3 border border-gray-200">
                                             <div className="flex items-center justify-center gap-1">
                                                 <Link to={`/dashboard/donation-request/${r._id}`} className="p-1.5 border border-gray-200 rounded-sm hover:bg-gray-100"><Eye size={16} /></Link>
-                                                <Link to={`/dashboard/edit-donation-request/${r._id}`} className="p-1.5 border border-gray-200 rounded-sm hover:bg-gray-100 text-blue-600"><Edit3 size={16} /></Link>
-                                                <button onClick={() => handleDelete(r._id)} className="p-1.5 border border-gray-200 rounded-sm hover:bg-gray-100 text-red-600"><Trash2 size={16} /></button>
+
+                                                {/* Only show Edit/Delete for admins */}
+                                                {role === "admin" && (
+                                                    <>
+                                                        <Link to={`/dashboard/edit-donation-request/${r._id}`} className="p-1.5 border border-gray-200 rounded-sm hover:bg-gray-100 text-blue-600"><Edit3 size={16} /></Link>
+                                                        <button onClick={() => handleDelete(r._id)} className="p-1.5 border border-gray-200 rounded-sm hover:bg-gray-100 text-red-600"><Trash2 size={16} /></button>
+                                                    </>
+                                                )}
 
                                                 {r.status === "inprogress" && (
                                                     <div className="flex gap-1 ml-1 border-l pl-1 border-gray-200">
@@ -273,6 +279,7 @@ const DashboardHome = () => {
                                                     </div>
                                                 )}
                                             </div>
+
                                         </td>
                                     </tr>
                                 ))}
