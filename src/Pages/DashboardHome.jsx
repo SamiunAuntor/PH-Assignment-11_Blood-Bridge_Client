@@ -82,7 +82,7 @@ const DashboardHome = () => {
     const [stats, setStats] = useState({
         totalUsers: 0,
         totalRequests: 0,
-        totalFunding: 5200,
+        totalFunding: 2550,
         pendingRequests: 0,
         doneRequests: 0,
     });
