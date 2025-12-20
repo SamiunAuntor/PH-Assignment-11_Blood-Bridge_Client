@@ -33,7 +33,7 @@ const Featured = () => {
         const fetchRequests = async () => {
             try {
                 setLoading(true);
-                const res = await axios.get("/donation-requests?limit=6&sort=desc");
+                const res = await axios.get("/donation-requests");
                 setRequests(res.data.requests || []);
             } catch (err) {
                 console.error("Failed to fetch requests:", err);
@@ -78,7 +78,7 @@ const Featured = () => {
                 {requests.length > 0 ? (
                     <>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {requests.map((req) => (
+                            {requests.slice(0, 6).map((req) => (
                                 <div
                                     key={req._id}
                                     className="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition-shadow"
@@ -122,7 +122,7 @@ const Featured = () => {
                         <div className="mt-8 text-center">
                             <Link
                                 to="/donation-requests"
-                                className="px-8 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition-colors"
+                                className="px-8 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors"
                             >
                                 Show All Requests
                             </Link>

@@ -37,7 +37,7 @@ const Funding = () => {
 
         // Dummy data for payment, will be implemented later
         setSubmitting(true);
-        
+
         // Simulate API delay
         setTimeout(() => {
             const newFunding = {
@@ -102,44 +102,44 @@ const Funding = () => {
                         <div className="overflow-x-auto -mx-6 md:mx-0">
                             <div className="inline-block min-w-full align-middle px-6 md:px-0">
                                 <table className="min-w-full">
-                                <thead className="bg-red-100">
-                                    <tr>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Donor Name</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Amount</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200">
-                                    {fundings.length > 0 ? (
-                                        fundings.map((funding) => (
-                                            <tr key={funding._id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <User size={20} className="text-gray-400" />
-                                                        <span className="font-medium text-gray-800">{funding.userName}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className="text-lg font-bold text-green-600">
-                                                        ${funding.amount.toLocaleString()}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2 text-gray-600">
-                                                        <Calendar size={16} />
-                                                        <span>{new Date(funding.date).toLocaleDateString()}</span>
-                                                    </div>
+                                    <thead className="bg-red-100">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Donor Name</th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Amount</th>
+                                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200">
+                                        {fundings.length > 0 ? (
+                                            fundings.map((funding) => (
+                                                <tr key={funding._id} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <User size={20} className="text-gray-400" />
+                                                            <span className="font-medium text-gray-800">{funding.userName}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="text-lg font-bold text-green-600">
+                                                            ${funding.amount.toLocaleString()}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-2 text-gray-600">
+                                                            <Calendar size={16} />
+                                                            <span>{new Date(funding.date).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="3" className="px-6 py-12 text-center text-gray-500">
+                                                    No funding records yet.
                                                 </td>
                                             </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="3" className="px-6 py-12 text-center text-gray-500">
-                                                No funding records yet.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
+                                        )}
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -149,7 +149,7 @@ const Funding = () => {
 
             {/* Donate Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl p-6 md:p-8 max-w-md w-full">
                         <h2 className="text-2xl font-bold text-gray-800 mb-4">Make a Donation</h2>
                         <p className="text-gray-600 mb-6">
