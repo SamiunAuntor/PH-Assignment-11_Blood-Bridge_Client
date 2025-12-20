@@ -122,6 +122,15 @@ const RegisterPage = () => {
 
             <div className="w-full md:w-3/10 flex items-center justify-center p-6 md:p-12 bg-white">
                 <div className="w-full max-w-md">
+
+                    {/* overlay for registering */}
+                    {registering && (
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 md:hidden">
+                            <p className="text-white text-xl font-bold animate-pulse">Registering...</p>
+                        </div>
+                    )}
+
+
                     <h2 className="text-3xl font-bold text-red-600 mb-6">Register</h2>
 
                     <form onSubmit={handleSubmit(handleRegister)} className="flex flex-col gap-4">
