@@ -103,7 +103,11 @@ const AllBloodDonationRequests = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             Swal.fire("Success", `Request marked as ${newStatus}`, "success");
-            setPage(1); // refresh first page
+            setRequests(prev =>
+                prev.map(r =>
+                    r._id === id ? { ...r, status: newStatus } : r
+                )
+            );
         } catch {
             Swal.fire("Error", "Status update failed", "error");
         }
