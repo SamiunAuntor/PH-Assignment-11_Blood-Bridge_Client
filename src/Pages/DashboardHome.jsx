@@ -18,7 +18,7 @@ import useRole from "../Hooks/useRole";
 import useAxios from "../Hooks/useAxios";
 import useAuth from "../Hooks/useAuth";
 import Loading from "../Components/Loading";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 
 const DonationStatusChart = ({ requests }) => {
     const [radius, setRadius] = useState(120); 
@@ -50,7 +50,7 @@ const DonationStatusChart = ({ requests }) => {
     const COLORS = ["#fb923c", "#facc15", "#22c55e", "#ef4444"];
 
     return (
-        <div className="mb-10 p-6 bg-white/60 rounded-lg shadow">
+        <div className="p-6 bg-white/60 rounded-lg shadow">
             <h3 className="text-lg font-bold mb-4 text-slate-800">
                 Donation Request Status Overview
             </h3>
@@ -66,6 +66,107 @@ const DonationStatusChart = ({ requests }) => {
                     <Legend />
                 </PieChart>
             </ResponsiveContainer>
+        </div>
+    );
+};
+
+const TimeBasedStatsChart = ({ requests }) => {
+    const [timePeriod, setTimePeriod] = useState("today");
+
+    const getCount = () => {
+        if (!requests || requests.length === 0) return 0;
+
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        let startDate = new Date();
+
+        if (timePeriod === "today") {
+            // Today only
+            startDate = new Date(now);
+        } else if (timePeriod === "lastWeek") {
+            // Last 7 days
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 7);
+        } else if (timePeriod === "lastMonth") {
+            // Last 30 days
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 30);
+        }
+
+        let count = 0;
+
+        requests.forEach(request => {
+            // Use createdAt if available, otherwise use donationDate
+            let requestDate;
+            if (request.createdAt) {
+                requestDate = new Date(request.createdAt);
+            } else if (request.donationDate) {
+                // Parse date string format (e.g., "2024-01-15")
+                const dateParts = request.donationDate.split('-');
+                if (dateParts.length === 3) {
+                    requestDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+                } else {
+                    requestDate = new Date(request.donationDate);
+                }
+            } else {
+                return; // Skip if no date available
+            }
+            
+            if (isNaN(requestDate.getTime())) return; 
+            
+            requestDate.setHours(0, 0, 0, 0);
+
+            if (requestDate >= startDate && requestDate <= now) {
+                count++;
+            }
+        });
+
+        return count;
+    };
+
+    const count = getCount();
+
+    const chartData = [
+        { name: "Requests", count: count }
+    ];
+
+    return (
+        <div className="p-6 bg-white/60 rounded-lg shadow">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                <h3 className="text-lg font-bold text-slate-800">
+                    Donation Requests Count
+                </h3>
+                <select
+                    value={timePeriod}
+                    onChange={(e) => setTimePeriod(e.target.value)}
+                    className="px-3 py-1.5 border border-gray-300 rounded-md text-sm font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-gray-800"
+                >
+                    <option value="today">Today</option>
+                    <option value="lastWeek">Last Week (7 Days)</option>
+                    <option value="lastMonth">Last Month (30 Days)</option>
+                </select>
+            </div>
+
+            <div className="mt-6">
+                <div className="text-center mb-6">
+                    <p className="text-5xl font-black text-red-600 mb-2">{count}</p>
+                    <p className="text-sm text-gray-600 font-semibold">
+                        {timePeriod === "today" && "Requests Today"}
+                        {timePeriod === "lastWeek" && "Requests in Last 7 Days"}
+                        {timePeriod === "lastMonth" && "Requests in Last 30 Days"}
+                    </p>
+                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" tick={{ fontSize: 14 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#dc2626" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
         </div>
     );
 };
@@ -311,7 +412,10 @@ const DashboardHome = () => {
             </div>
 
             {role === "admin" && chartRequests.length > 0 && (
-                <DonationStatusChart requests={chartRequests} />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+                    <DonationStatusChart requests={chartRequests} />
+                    <TimeBasedStatsChart requests={chartRequests} />
+                </div>
             )}
 
 

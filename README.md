@@ -66,7 +66,9 @@ Blood Bridge is a comprehensive blood donation management platform that facilita
 ### 📊 Dashboard Features
 - **Dashboard Home**: Role-specific dashboard with statistics and recent requests
 - **Statistics Cards**: Total users, total funding, donation requests count
-- **Analytics Charts**: Admin dashboard includes pie chart showing donation request status overview (pending, inprogress, done, canceled)
+- **Analytics Charts**: Admin dashboard includes:
+  - **Pie Chart**: Visual overview of donation request status distribution (pending, inprogress, done, canceled)
+  - **Bar Chart**: Time-based donation requests count with filters (Today, Last 7 Days, Last 30 Days)
 - **Recent Requests**: Display 3 most recent donation requests
 - **Pagination**: Implemented for donation requests and users lists
 - **Status Filtering**: Filter requests by status (pending, inprogress, done, canceled)
@@ -304,7 +306,9 @@ blood-bridge-client/
 ### Dashboard Features
 - Role-specific dashboards
 - Statistics cards (users, funding, requests)
-- Analytics charts (Admin: pie chart for donation request status overview)
+- Analytics charts (Admin):
+  - Pie chart for donation request status overview (pending, inprogress, done, canceled)
+  - Bar chart for time-based donation requests count with period filters (Today, Last 7 Days, Last 30 Days)
 - Recent requests display
 - Quick actions and navigation
 
@@ -388,7 +392,7 @@ blood-bridge-client/
 - [ ] Stripe payment integration for funding
 - [ ] Email notifications for donation requests
 - [ ] Push notifications for mobile users
-- [ ] Daily/weekly/monthly donation request statistics charts
+- [ ] Additional analytics charts (donor distribution, blood group statistics)
 - [ ] Donor rating and review system
 - [ ] Blood donation history tracking
 - [ ] Multi-language support
