@@ -19,6 +19,11 @@ const SearchDonors = () => {
 
     const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
+    // Ensure we are on top after redirected
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     useEffect(() => {
         const loadLocations = async () => {
             try {

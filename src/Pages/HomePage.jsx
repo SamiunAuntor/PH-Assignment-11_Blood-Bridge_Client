@@ -5,6 +5,7 @@ import Banner from '../Components/Banner';
 import ContactUsSection from '../Components/ContactUsSection';
 import FeaturedSection from '../Components/FeaturedSection';
 import WhatOurUsersSay from '../Components/WhatOurUsersSay';
+import Featured from '../Components/Featured';
 
 
 
@@ -38,6 +39,7 @@ const HomePage = () => {
     return (
         <div className='min-h-screen'>
             <Banner></Banner>
+            <Featured></Featured>
             <FeaturedSection></FeaturedSection>
             <WhatOurUsersSay></WhatOurUsersSay>
             <ContactUsSection></ContactUsSection>
