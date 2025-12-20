@@ -18,6 +18,59 @@ import useRole from "../Hooks/useRole";
 import useAxios from "../Hooks/useAxios";
 import useAuth from "../Hooks/useAuth";
 import Loading from "../Components/Loading";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+
+const DonationStatusChart = ({ requests }) => {
+    const [radius, setRadius] = useState(120); 
+
+    useEffect(() => {
+        const updateRadius = () => {
+            const width = window.innerWidth;
+            if (width < 640) setRadius(60);    
+            else setRadius(90);           
+        };
+
+        updateRadius(); 
+        window.addEventListener("resize", updateRadius);
+        return () => window.removeEventListener("resize", updateRadius);
+    }, []);
+
+    const statusCount = { pending: 0, inprogress: 0, done: 0, canceled: 0 };
+    requests.forEach(r => {
+        statusCount[r.status] = (statusCount[r.status] || 0) + 1;
+    });
+
+    const data = [
+        { name: "Pending", value: statusCount.pending },
+        { name: "In Progress", value: statusCount.inprogress },
+        { name: "Done", value: statusCount.done },
+        { name: "Canceled", value: statusCount.canceled },
+    ];
+
+    const COLORS = ["#fb923c", "#facc15", "#22c55e", "#ef4444"];
+
+    return (
+        <div className="mb-10 p-6 bg-white/60 rounded-lg shadow">
+            <h3 className="text-lg font-bold mb-4 text-slate-800">
+                Donation Request Status Overview
+            </h3>
+
+            <ResponsiveContainer width="100%" height={360}>
+                <PieChart>
+                    <Pie data={data} dataKey="value" label outerRadius={radius} stroke="none">
+                        {data.map((_, i) => (
+                            <Cell key={i} fill={COLORS[i]} stroke="none" />
+                        ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                </PieChart>
+            </ResponsiveContainer>
+        </div>
+    );
+};
+
+
 
 const DashboardHome = () => {
     const { role, isLoading } = useRole();
@@ -36,6 +89,8 @@ const DashboardHome = () => {
     const [loadingData, setLoadingData] = useState(true);
     const [districts, setDistricts] = useState([]);
     const [upzillas, setUpzillas] = useState([]);
+    const [chartRequests, setChartRequests] = useState([]);
+
 
     /* Load Location Data */
     useEffect(() => {
@@ -117,6 +172,32 @@ const DashboardHome = () => {
         fetchData();
     }, [role, user, districts]);
 
+    const fetchChartData = async () => {
+        if (role !== "admin") return;
+
+        try {
+            const token = await getAuth().currentUser.getIdToken();
+            const headers = { Authorization: `Bearer ${token}` };
+
+            const res = await axios.get(
+                "/dashboard/all-blood-donation-request?limit=1000",
+                { headers }
+            );
+
+            setChartRequests(res.data.requests || []);
+        } catch (err) {
+            console.error("Chart data fetch failed", err);
+        }
+    };
+
+    useEffect(() => {
+        if (role === "admin") {
+            fetchChartData();
+        }
+    }, [role]);
+
+
+
     /* Status Update */
     const handleStatusUpdate = async (id, status) => {
         const confirm = await Swal.fire({
@@ -145,6 +226,11 @@ const DashboardHome = () => {
 
             await Swal.fire("Success", `Marked as ${status}`, "success");
             fetchData();
+            setChartRequests(prev =>
+                prev.map(r =>
+                    r._id === id ? { ...r, status } : r
+                )
+            );
         } catch {
             Swal.fire("Error", "Status update failed", "error");
         }
@@ -170,6 +256,7 @@ const DashboardHome = () => {
             });
             await Swal.fire("Deleted!", "Request removed.", "success");
             fetchData();
+            setChartRequests(prev => prev.filter(r => r._id !== id));
         } catch {
             Swal.fire("Error", "Delete failed", "error");
         }
@@ -207,7 +294,7 @@ const DashboardHome = () => {
             </div>
 
             {/* Stats Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
                 {role === "donor" ? (
                     <>
                         <StatCard icon={<Activity className="text-blue-600" />} label="My Total Requests" value={stats.totalRequests} />
@@ -222,6 +309,11 @@ const DashboardHome = () => {
                     </>
                 )}
             </div>
+
+            {role === "admin" && chartRequests.length > 0 && (
+                <DonationStatusChart requests={chartRequests} />
+            )}
+
 
             {recentRequests.length > 0 ? (
                 <div>
