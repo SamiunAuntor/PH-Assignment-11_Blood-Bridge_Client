@@ -49,21 +49,9 @@ const features = [
         title: "Smart Donor Search",
         description: "Find donors by group, location, and last donation date."
     },
-    {
-        icon: <FaBell size={32} className="text-red-600" />,
-        title: "Emergency Alerts",
-        description: "Get notified when someone nearby needs urgent blood."
-    },
-    {
-        icon: <FaUserCheck size={32} className="text-red-600" />,
-        title: "Profile Verification",
-        description: "Every profile is checked to maintain trust and safety."
-    },
-    {
-        icon: <FaHistory size={32} className="text-red-600" />,
-        title: "Donation History",
-        description: "Track your donation activity and contributions."
-    }
+    
+    
+    
 ];
 
 const FeaturedSection = () => {
@@ -73,7 +61,7 @@ const FeaturedSection = () => {
             {/* Heading */}
             <div className="max-w-4xl mx-auto text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-extrabold text-red-600 mb-4">
-                    Our Features
+                    Why Choose BloodBridge?
                 </h2>
                 <p className="text-gray-600">
                     Discover the tools and features that make BloodBridge reliable and fast.
