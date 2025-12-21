@@ -5,6 +5,7 @@ import { Pagination, Autoplay } from "swiper/modules";
 
 import "swiper/css";
 import "swiper/css/pagination";
+import useAuth from "../Hooks/useAuth";
 
 import bannerImg2 from "../assets/banner-1.jpg";
 import bannerImg3 from "../assets/banner-2.jpg";
@@ -15,6 +16,9 @@ import bannerImg6 from "../assets/banner-6.png";
 import bannerImg7 from "../assets/banner-7.jpg";
 
 const Banner = () => {
+
+    const { user } = useAuth();
+
     return (
         <div className="w-full">
 
@@ -59,12 +63,15 @@ const Banner = () => {
 
                 <div className="flex flex-col sm:flex-row gap-4 mt-4">
 
-                    <Link
-                        to="/register"
-                        className="px-6 py-3 bg-white text-red-600 font-semibold rounded-xl shadow-md hover:bg-gray-100 transition"
-                    >
-                        Join as a Donor
-                    </Link>
+                    {/* Show only when user not logged in */}
+                    {!user && (
+                        <Link
+                            to="/register"
+                            className="px-6 py-3 bg-white text-red-600 font-semibold rounded-xl shadow-md hover:bg-gray-100 transition"
+                        >
+                            Join as a Donor
+                        </Link>
+                    )}
 
                     <Link
                         to="/search"

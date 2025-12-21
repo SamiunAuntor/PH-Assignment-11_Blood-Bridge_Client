@@ -60,7 +60,7 @@ const LoginPage = () => {
             const name = user?.displayName || data.email.split("@")[0];
             showToast(`Welcome back, ${name}!`, "success");
 
-            navigate("/"); // redirect to home page after login
+            navigate("/dashboard/home"); // redirect to home page after login
         } catch (err) {
             showToast(getFriendlyErrorMessage(err), "error");
         }
@@ -68,11 +68,11 @@ const LoginPage = () => {
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen">
-            <div className="w-full md:w-7/10 h-64 md:h-auto hidden md:block">
+            <div className="w-full md:w-[65%] lg:w-[70%] h-64 md:h-auto hidden md:block">
                 <img src={loginImage} alt="Login" className="w-full h-full object-contain" />
             </div>
 
-            <div className="w-full md:w-3/10 flex items-center justify-center p-6 md:p-12 bg-white">
+            <div className="w-full md:w-[35%] lg:w-[30%] flex items-center justify-center p-6 md:p-12 bg-white">
                 <div className="w-full max-w-md">
                     <h2 className="text-3xl font-bold text-red-600 mb-6">Login</h2>
 

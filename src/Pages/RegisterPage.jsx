@@ -109,8 +109,8 @@ const RegisterPage = () => {
 
 
     return (
-        <div className="my-0 flex flex-col md:flex-row">
-            <div className="w-full md:w-7/10 h-64 md:h-auto hidden md:block relative">
+        <div className="min-h-screen my-0 flex flex-col md:flex-row">
+            <div className="w-full md:w-[65%] lg:w-[70%] h-64 md:h-auto hidden md:block relative">
                 <img src={registerImage} alt="Register" className="w-full h-full object-contain" />
                 {registering && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -120,7 +120,7 @@ const RegisterPage = () => {
             </div>
 
 
-            <div className="w-full md:w-3/10 flex items-center justify-center p-6 md:p-12 bg-white">
+            <div className="w-full md:w-[35%] lg:w-[30%] flex items-center justify-center p-6 md:p-12 bg-white">
                 <div className="w-full max-w-md">
 
                     {/* overlay for registering */}

@@ -392,7 +392,7 @@ blood-bridge-client/
 - [ ] Stripe payment integration for funding
 - [ ] Email notifications for donation requests
 - [ ] Push notifications for mobile users
-- [ ] Additional analytics charts (donor distribution, blood group statistics)
+on - [ ] Additional analytics charts (donor distribution, blood group statistics)
 - [ ] Donor rating and review system
 - [ ] Blood donation history tracking
 - [ ] Multi-language support
