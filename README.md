@@ -6,7 +6,7 @@
 A modern, secure MERN Stack web application for managing blood donation requests and connecting donors with recipients. Users can register as donors, create donation requests, search for donors, manage requests, and contribute to funding. Built with role-based access control for Admin, Volunteer, and Donor roles.
 
 🌐 **Live Demo**  
-🔗 [View Live Application](https://placeholder.com)
+🔗 [View Live Application](https://bloodbridge-4c0c0.web.app/)
 
 ---
 
@@ -167,7 +167,7 @@ yarn install
 Create a `.env` file in the root directory and add the following variables:
 
 ```env
-VITE_API_URL=your-api-url-here
+VITE_API_URL=https://blood-bridge-server-five.vercel.app
 VITE_FIREBASE_API_KEY=your-firebase-api-key
 VITE_FIREBASE_AUTH_DOMAIN=your-firebase-auth-domain
 VITE_FIREBASE_PROJECT_ID=your-firebase-project-id
