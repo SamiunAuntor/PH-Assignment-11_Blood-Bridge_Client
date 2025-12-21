@@ -60,7 +60,7 @@ const LoginPage = () => {
             const name = user?.displayName || data.email.split("@")[0];
             showToast(`Welcome back, ${name}!`, "success");
 
-            navigate("/dashboard/home"); // redirect to home page after login
+            navigate("/"); // redirect to home page after login
         } catch (err) {
             showToast(getFriendlyErrorMessage(err), "error");
         }
