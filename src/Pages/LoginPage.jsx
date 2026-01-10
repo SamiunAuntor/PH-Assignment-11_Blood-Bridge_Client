@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router";
 import useAuth from "../Hooks/useAuth";
 import { useForm } from "react-hook-form";
 import { HiEye, HiEyeOff } from "react-icons/hi";
+import { ShieldCheck, Users, User as UserIcon } from "lucide-react";
 import { showToast } from "../Utilities/ToastMessage";
 import Loading from "../Components/Loading";
 
@@ -12,8 +13,9 @@ const LoginPage = () => {
     const { loginUserWithEmailPassword, user, loading } = useAuth();
     const navigate = useNavigate();
     const [showPass, setShowPass] = useState(false);
+    const [quickLoginLoading, setQuickLoginLoading] = useState(false);
 
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
+    const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm();
 
 
     // State to manage minimum loading time
@@ -60,9 +62,31 @@ const LoginPage = () => {
             const name = user?.displayName || data.email.split("@")[0];
             showToast(`Welcome back, ${name}!`, "success");
 
+            // Reset loading state before navigation
+            setQuickLoginLoading(false);
             navigate("/"); // redirect to home page after login
         } catch (err) {
             showToast(getFriendlyErrorMessage(err), "error");
+            setQuickLoginLoading(false);
+        }
+    };
+
+    const handleQuickLogin = async (email, password, role) => {
+        try {
+            setQuickLoginLoading(true);
+            
+            // Auto-fill the form fields with proper options for visual update
+            setValue("email", email, { shouldValidate: true, shouldDirty: true });
+            setValue("password", password, { shouldValidate: true, shouldDirty: true });
+            
+            // Small delay to show form being filled (visual feedback)
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // Auto-submit the form by calling onSubmit with the credentials
+            await onSubmit({ email, password });
+        } catch (err) {
+            showToast(getFriendlyErrorMessage(err), "error");
+            setQuickLoginLoading(false);
         }
     };
 
@@ -75,6 +99,39 @@ const LoginPage = () => {
             <div className="w-full md:w-[35%] lg:w-[30%] flex items-center justify-center p-6 md:p-12 bg-white">
                 <div className="w-full max-w-md">
                     <h2 className="text-3xl font-bold text-red-600 mb-6">Login</h2>
+
+                    {/* Quick Login Section */}
+                    <div className="mb-6 p-4 border border-dashed border-green-500 rounded-lg bg-green-50">
+                        <p className="text-xs font-bold text-green-700 uppercase mb-3 text-center tracking-wider">
+                            Quick Login
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => handleQuickLogin("admin2@gmail.com", "admin2", "Admin")}
+                                disabled={isSubmitting || quickLoginLoading}
+                                className="flex items-center justify-center gap-2 bg-gray-900 text-white py-2 px-3 text-xs font-semibold rounded hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <ShieldCheck size={14} /> Admin
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleQuickLogin("volunteer@gmail.com", "volunteer", "Volunteer")}
+                                disabled={isSubmitting || quickLoginLoading}
+                                className="flex items-center justify-center gap-2 bg-green-600 text-white py-2 px-3 text-xs font-semibold rounded hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <Users size={14} /> Volunteer
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleQuickLogin("user101@gmail.com", "user123", "User")}
+                                disabled={isSubmitting || quickLoginLoading}
+                                className="flex items-center justify-center gap-2 bg-blue-600 text-white py-2 px-3 text-xs font-semibold rounded hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <UserIcon size={14} /> User
+                            </button>
+                        </div>
+                    </div>
 
                     <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
                         <div>
@@ -105,7 +162,7 @@ const LoginPage = () => {
 
                         <button
                             type="submit"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || quickLoginLoading}
                             className="px-4 py-3 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
                         >
                             {isSubmitting ? "Logging in..." : "Login"}
