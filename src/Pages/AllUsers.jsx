@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import useAxios from "../Hooks/useAxios";
 import useAuth from "../Hooks/useAuth";
 import Loading from "../Components/Loading";
+import { Search as SearchIcon } from "lucide-react";
 
 const LIMIT = 10;
 
@@ -17,7 +18,9 @@ const AllUsers = () => {
     }, []);
 
     const [users, setUsers] = useState([]);
+    const [allUsers, setAllUsers] = useState([]);
     const [status, setStatus] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -33,6 +36,7 @@ const AllUsers = () => {
                 headers: { Authorization: `Bearer ${token}` },
                 params: { status, page, limit: LIMIT },
             });
+            setAllUsers(res.data.users);
             setUsers(res.data.users);
             setTotal(res.data.total);
         } catch (err) {
@@ -50,6 +54,36 @@ const AllUsers = () => {
     useEffect(() => {
         fetchUsers();
     }, [status, page]);
+
+    // Filter users based on search query
+    useEffect(() => {
+        if (!allUsers.length) {
+            setUsers([]);
+            return;
+        }
+
+        let filtered = [...allUsers];
+
+        // Search filter (name, email, blood group, role)
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter((user) => {
+                const name = (user.name || "").toLowerCase();
+                const email = (user.email || "").toLowerCase();
+                const bloodGroup = (user.bloodGroup || "").toLowerCase();
+                const role = (user.role || "").toLowerCase();
+                
+                return (
+                    name.includes(query) ||
+                    email.includes(query) ||
+                    bloodGroup.includes(query) ||
+                    role.includes(query)
+                );
+            });
+        }
+
+        setUsers(filtered);
+    }, [searchQuery, allUsers]);
 
     // Handle role/status update with confirmation
     const handleUpdateUser = async (id, updates) => {
@@ -94,9 +128,24 @@ const AllUsers = () => {
                 All Users 👥🧑‍🤝‍🧑
             </h1>
 
-            {/* Filter */}
-            <div className="mb-6 flex gap-4 flex-wrap">
-                <div className="relative inline-block w-48 ml-auto">
+            {/* Search and Filter Bar */}
+            <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+                {/* Search Bar - Left */}
+                <div className="w-full md:flex-1" style={{ maxWidth: '538px' }}>
+                    <div className="relative">
+                        <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search by name, email, blood group, or role..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-700"
+                        />
+                    </div>
+                </div>
+
+                {/* Filter - Right */}
+                <div className="relative w-full md:w-48">
                     <select
                         className="border border-gray-300 px-3 py-2 rounded shadow-sm font-semibold w-full appearance-none"
                         value={status}
@@ -124,7 +173,13 @@ const AllUsers = () => {
                 </div>
             </div>
 
-
+            {/* Count Display */}
+            <div className="mb-4 text-lg font-bold text-gray-700">
+                {users.length > 0 
+                    ? `${users.length} ${users.length === 1 ? 'user' : 'users'} found`
+                    : 'No users found'
+                }
+            </div>
 
             {/* Table */}
             {users.length > 0 ? (

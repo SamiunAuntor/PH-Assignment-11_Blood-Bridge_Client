@@ -170,9 +170,9 @@ const DonationRequests = () => {
                 </div>
 
                 {/* Search and Filter Bar */}
-                <div className="mb-10 flex flex-col md:flex-row md:justify-between md:items-center gap-6 items-center">
+                <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-6 items-center">
                     {/* Search Bar - Left */}
-                    <div className="w-full md:w-[600px]">
+                    <div className="w-full md:flex-1" style={{ maxWidth: '720px' }}>
                         <div className="relative">
                             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                             <input
@@ -212,6 +212,14 @@ const DonationRequests = () => {
                             </svg>
                         </div>
                     </div>
+                </div>
+
+                {/* Count Display */}
+                <div className="mb-4 text-lg font-bold text-gray-700">
+                    {requests.length > 0 
+                        ? `${requests.length} ${requests.length === 1 ? 'request' : 'requests'} found`
+                        : 'No requests found'
+                    }
                 </div>
 
                 {requests.length > 0 ? (

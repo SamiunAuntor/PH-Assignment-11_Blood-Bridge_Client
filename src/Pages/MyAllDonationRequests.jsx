@@ -5,7 +5,8 @@ import {
     Edit3,
     Trash2,
     CheckCircle,
-    XCircle
+    XCircle,
+    Search as SearchIcon
 } from "lucide-react";
 import { getAuth } from "firebase/auth";
 import Swal from "sweetalert2";
@@ -25,7 +26,9 @@ const MyAllDonationRequests = () => {
     }, []);
 
     const [requests, setRequests] = useState([]);
+    const [allRequests, setAllRequests] = useState([]);
     const [status, setStatus] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -81,6 +84,7 @@ const MyAllDonationRequests = () => {
                     };
                 });
 
+                setAllRequests(decoded);
                 setRequests(decoded);
                 setTotal(res.data.total);
             } catch (err) {
@@ -96,6 +100,34 @@ const MyAllDonationRequests = () => {
 
         fetchRequests();
     }, [user, status, page, districts, upzillas, axios]);
+
+    // Filter requests based on search query
+    useEffect(() => {
+        if (!allRequests.length) {
+            setRequests([]);
+            return;
+        }
+
+        let filtered = [...allRequests];
+
+        // Search filter (recipient name, blood group, location)
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter((req) => {
+                const recipientName = (req.recipientName || "").toLowerCase();
+                const bloodGroup = (req.bloodGroup || "").toLowerCase();
+                const location = `${req.recipientUpazilaName || ""} ${req.recipientDistrictName || ""}`.toLowerCase();
+                
+                return (
+                    recipientName.includes(query) ||
+                    bloodGroup.includes(query) ||
+                    location.includes(query)
+                );
+            });
+        }
+
+        setRequests(filtered);
+    }, [searchQuery, allRequests]);
 
     /* Status Update */
     const handleStatusUpdate = async (id, newStatus) => {
@@ -171,9 +203,24 @@ const MyAllDonationRequests = () => {
                 My Donation Requests 🩸📄
             </h1>
 
-            {/* Filter */}
-            <div className="mb-6 flex">
-                <div className="relative inline-block w-48 ml-auto">
+            {/* Search and Filter Bar */}
+            <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+                {/* Search Bar - Left */}
+                <div className="w-full md:flex-1" style={{ maxWidth: '538px' }}>
+                    <div className="relative">
+                        <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search by recipient, blood group, or location..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-700"
+                        />
+                    </div>
+                </div>
+
+                {/* Filter - Right */}
+                <div className="relative w-full md:w-48">
                     <select
                         className="border border-gray-300 px-3 py-2 rounded shadow-sm font-semibold w-full appearance-none"
                         value={status}
@@ -203,6 +250,13 @@ const MyAllDonationRequests = () => {
                 </div>
             </div>
 
+            {/* Count Display */}
+            <div className="mb-4 text-lg font-bold text-gray-700">
+                {requests.length > 0 
+                    ? `${requests.length} ${requests.length === 1 ? 'request' : 'requests'} found`
+                    : 'No requests found'
+                }
+            </div>
 
             {/* Table */}
             {requests.length > 0 ? (
