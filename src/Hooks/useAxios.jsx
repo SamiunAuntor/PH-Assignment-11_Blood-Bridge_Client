@@ -2,7 +2,7 @@ import axios from "axios";
 
 // create instance
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || `http://localhost:5000/`,
+    baseURL: import.meta.env.VITE_API_URL || `https://blood-bridge-server-five.vercel.app`,
 });
 
 const useAxios = () => {
