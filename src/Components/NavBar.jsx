@@ -4,7 +4,7 @@ import logo from "../assets/logo.png";
 import defaultUserAvatar from "../assets/user.png";
 import useAuth from "../Hooks/useAuth";
 import { BiSolidDonateBlood } from "react-icons/bi";
-import { FaDonate, FaHome, FaInfoCircle, FaShieldAlt } from "react-icons/fa";
+import { FaDonate, FaHome, FaInfoCircle, FaShieldAlt, FaQuestionCircle } from "react-icons/fa";
 import { Search as SearchIcon } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 
@@ -92,6 +92,16 @@ const NavBar = () => {
             className={navLinkClass}
           >
             <FaShieldAlt size={26} />
+          </NavLink>
+
+          {/* FAQ */}
+          <NavLink
+            to="/faq"
+            data-tooltip-id="navTip"
+            data-tooltip-content="FAQ"
+            className={navLinkClass}
+          >
+            <FaQuestionCircle size={26} />
           </NavLink>
 
           {/* Funding */}
@@ -231,6 +241,17 @@ const NavBar = () => {
             onClick={() => setMenuOpen(false)}
           >
             Privacy Policy
+          </NavLink>
+
+          <NavLink
+            to="/faq"
+            className={({ isActive }) =>
+              `w-full text-center p-2 rounded-md text-gray-700 transition-colors duration-200 ${isActive ? "text-red-600 bg-red-50" : "hover:text-red-600 hover:bg-red-50"
+              }`
+            }
+            onClick={() => setMenuOpen(false)}
+          >
+            FAQ
           </NavLink>
 
           {user && (
