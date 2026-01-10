@@ -153,11 +153,12 @@ const MyAllDonationRequests = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             Swal.fire("Success", `Request marked as ${newStatus}`, "success");
-            setRequests(prev =>
-                prev.map(r =>
-                    r._id === id ? { ...r, status: newStatus } : r
-                )
-            );
+            
+            // Update all state arrays to keep them in sync
+            const updateRequest = (req) => req._id === id ? { ...req, status: newStatus } : req;
+            setRequests(prev => prev.map(updateRequest));
+            setAllRequests(prev => prev.map(updateRequest));
+            setFilteredRequests(prev => prev.map(updateRequest));
         } catch {
             Swal.fire("Error", "Status update failed", "error");
         }
@@ -181,7 +182,12 @@ const MyAllDonationRequests = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             Swal.fire("Deleted!", "Request has been removed.", "success");
-            setRequests((prev) => prev.filter(r => r._id !== id));
+            
+            // Update all state arrays to keep them in sync
+            const filterRequest = (r) => r._id !== id;
+            setRequests((prev) => prev.filter(filterRequest));
+            setAllRequests((prev) => prev.filter(filterRequest));
+            setFilteredRequests((prev) => prev.filter(filterRequest));
             setTotal(prev => prev - 1);
 
         } catch {
@@ -217,7 +223,10 @@ const MyAllDonationRequests = () => {
                             type="text"
                             placeholder="Search by recipient, blood group, or location..."
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setPage(1); // Reset to page 1 when search changes
+                            }}
                             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-700"
                         />
                     </div>
@@ -256,15 +265,24 @@ const MyAllDonationRequests = () => {
 
             {/* Count Display */}
             <div className="mb-4 text-lg font-bold text-gray-700">
-                {filteredRequests.length > 0 ? (
-                    (() => {
-                        const startIdx = (page - 1) * LIMIT + 1;
-                        const endIdx = Math.min(page * LIMIT, filteredRequests.length);
-                        return `Showing ${startIdx} to ${endIdx} of ${filteredRequests.length} requests`;
-                    })()
-                ) : (
-                    'No requests found'
-                )}
+                {(() => {
+                    // If search query exists, use filtered results (client-side filtering)
+                    // Otherwise, use total from server (all matching items across pages)
+                    const displayTotal = searchQuery.trim() ? filteredRequests.length : total;
+                    const displayRequests = searchQuery.trim() ? filteredRequests : requests;
+                    
+                    if (displayRequests.length > 0) {
+                        const startIdx = searchQuery.trim() 
+                            ? 1 
+                            : (page - 1) * LIMIT + 1;
+                        const endIdx = searchQuery.trim()
+                            ? filteredRequests.length
+                            : Math.min(page * LIMIT, total);
+                        return `Showing ${startIdx} to ${endIdx} of ${displayTotal} requests`;
+                    } else {
+                        return 'No requests found';
+                    }
+                })()}
             </div>
 
             {/* Table */}

@@ -138,7 +138,10 @@ const AllUsers = () => {
                             type="text"
                             placeholder="Search by name, email, blood group, or role..."
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setPage(1); // Reset to page 1 when search changes
+                            }}
                             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-700"
                         />
                     </div>
@@ -175,17 +178,24 @@ const AllUsers = () => {
 
             {/* Count Display */}
             <div className="mb-4 text-lg font-bold text-gray-700">
-                {users.length > 0 ? (
-                    (() => {
-                        const startIdx = (page - 1) * LIMIT + 1;
-                        const endIdx = Math.min(page * LIMIT, users.length);
-                        // If searching, show filtered count, otherwise show server total
-                        const totalCount = searchQuery.trim() ? users.length : total;
-                        return `Showing ${startIdx} to ${endIdx} of ${totalCount} users`;
-                    })()
-                ) : (
-                    'No users found'
-                )}
+                {(() => {
+                    // If search query exists, use filtered results (client-side filtering)
+                    // Otherwise, use total from server (all matching items across pages)
+                    const displayTotal = searchQuery.trim() ? users.length : total;
+                    const displayUsers = users;
+                    
+                    if (displayUsers.length > 0) {
+                        const startIdx = searchQuery.trim() 
+                            ? 1 
+                            : (page - 1) * LIMIT + 1;
+                        const endIdx = searchQuery.trim()
+                            ? users.length
+                            : Math.min(page * LIMIT, total);
+                        return `Showing ${startIdx} to ${endIdx} of ${displayTotal} users`;
+                    } else {
+                        return 'No users found';
+                    }
+                })()}
             </div>
 
             {/* Table */}
