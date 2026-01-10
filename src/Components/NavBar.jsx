@@ -4,7 +4,7 @@ import logo from "../assets/logo.png";
 import defaultUserAvatar from "../assets/user.png";
 import useAuth from "../Hooks/useAuth";
 import { BiSolidDonateBlood } from "react-icons/bi";
-import { FaDonate, FaHome, FaInfoCircle } from "react-icons/fa";
+import { FaDonate, FaHome, FaInfoCircle, FaShieldAlt } from "react-icons/fa";
 import { Search as SearchIcon } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 
@@ -82,6 +82,16 @@ const NavBar = () => {
             className={navLinkClass}
           >
             <FaInfoCircle size={26} />
+          </NavLink>
+
+          {/* Privacy Policy */}
+          <NavLink
+            to="/privacy-policy"
+            data-tooltip-id="navTip"
+            data-tooltip-content="Privacy Policy"
+            className={navLinkClass}
+          >
+            <FaShieldAlt size={26} />
           </NavLink>
 
           {/* Funding */}
@@ -210,6 +220,17 @@ const NavBar = () => {
             onClick={() => setMenuOpen(false)}
           >
             About Us
+          </NavLink>
+
+          <NavLink
+            to="/privacy-policy"
+            className={({ isActive }) =>
+              `w-full text-center p-2 rounded-md text-gray-700 transition-colors duration-200 ${isActive ? "text-red-600 bg-red-50" : "hover:text-red-600 hover:bg-red-50"
+              }`
+            }
+            onClick={() => setMenuOpen(false)}
+          >
+            Privacy Policy
           </NavLink>
 
           {user && (

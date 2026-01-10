@@ -5,6 +5,7 @@ import LoginPage from "./Pages/LoginPage";
 import RegisterPage from "./Pages/RegisterPage";
 import Error404Page from "./Pages/Error404Page";
 import AboutPage from "./Pages/AboutPage";
+import PrivacyPolicyPage from "./Pages/PrivacyPolicyPage";
 import DashboardLayout from "./Layouts/DashboardLayout";
 import CreateDonationRequest from "./Pages/CreateDonationRequest";
 import UserProfile from "./Pages/UserProfile";
@@ -58,6 +59,10 @@ const router = createBrowserRouter([
             {
                 path: "about",
                 element: <AboutPage></AboutPage>,
+            },
+            {
+                path: "privacy-policy",
+                element: <PrivacyPolicyPage></PrivacyPolicyPage>,
             }
         ]
 
