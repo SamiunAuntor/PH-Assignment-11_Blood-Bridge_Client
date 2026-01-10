@@ -27,6 +27,7 @@ const MyAllDonationRequests = () => {
 
     const [requests, setRequests] = useState([]);
     const [allRequests, setAllRequests] = useState([]);
+    const [filteredRequests, setFilteredRequests] = useState([]);
     const [status, setStatus] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [page, setPage] = useState(1);
@@ -85,6 +86,7 @@ const MyAllDonationRequests = () => {
                 });
 
                 setAllRequests(decoded);
+                setFilteredRequests(decoded);
                 setRequests(decoded);
                 setTotal(res.data.total);
             } catch (err) {
@@ -104,6 +106,7 @@ const MyAllDonationRequests = () => {
     // Filter requests based on search query
     useEffect(() => {
         if (!allRequests.length) {
+            setFilteredRequests([]);
             setRequests([]);
             return;
         }
@@ -126,6 +129,7 @@ const MyAllDonationRequests = () => {
             });
         }
 
+        setFilteredRequests(filtered);
         setRequests(filtered);
     }, [searchQuery, allRequests]);
 
@@ -252,10 +256,15 @@ const MyAllDonationRequests = () => {
 
             {/* Count Display */}
             <div className="mb-4 text-lg font-bold text-gray-700">
-                {requests.length > 0 
-                    ? `${requests.length} ${requests.length === 1 ? 'request' : 'requests'} found`
-                    : 'No requests found'
-                }
+                {filteredRequests.length > 0 ? (
+                    (() => {
+                        const startIdx = (page - 1) * LIMIT + 1;
+                        const endIdx = Math.min(page * LIMIT, filteredRequests.length);
+                        return `Showing ${startIdx} to ${endIdx} of ${filteredRequests.length} requests`;
+                    })()
+                ) : (
+                    'No requests found'
+                )}
             </div>
 
             {/* Table */}

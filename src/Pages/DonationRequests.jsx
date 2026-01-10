@@ -15,12 +15,20 @@ import bloodTypeONegative from "../assets/blood-type-o-negitive.png";
 const DonationRequests = () => {
     const axios = useAxios();
     const [requests, setRequests] = useState([]);
+    const [filteredRequests, setFilteredRequests] = useState([]);
     const [allRequests, setAllRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [districts, setDistricts] = useState([]);
     const [upzillas, setUpzillas] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [bloodGroupFilter, setBloodGroupFilter] = useState("");
+    const [page, setPage] = useState(1);
+    
+    const CARDS_PER_PAGE = 12;
+    const totalPages = Math.ceil(filteredRequests.length / CARDS_PER_PAGE);
+    const startIndex = (page - 1) * CARDS_PER_PAGE;
+    const endIndex = startIndex + CARDS_PER_PAGE;
+    const currentPageRequests = filteredRequests.slice(startIndex, endIndex);
     
     const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -53,6 +61,7 @@ const DonationRequests = () => {
                 const res = await axios.get("/donation-requests");
                 const fetchedRequests = res.data.requests || [];
                 setAllRequests(fetchedRequests);
+                setFilteredRequests(fetchedRequests);
                 setRequests(fetchedRequests);
             } catch (err) {
                 console.error("Failed to fetch requests:", err);
@@ -71,7 +80,11 @@ const DonationRequests = () => {
 
     // Filter and search requests
     useEffect(() => {
+        // Reset to page 1 when search/filter changes
+        setPage(1);
+
         if (allRequests.length === 0) {
+            setFilteredRequests([]);
             setRequests([]);
             return;
         }
@@ -122,8 +135,20 @@ const DonationRequests = () => {
             return indexA - indexB;
         });
 
-        setRequests(filtered);
+        setFilteredRequests(filtered);
     }, [searchQuery, bloodGroupFilter, allRequests, districts, upzillas]);
+
+    // Update displayed requests when page or filteredRequests changes
+    useEffect(() => {
+        const startIdx = (page - 1) * CARDS_PER_PAGE;
+        const endIdx = startIdx + CARDS_PER_PAGE;
+        setRequests(filteredRequests.slice(startIdx, endIdx));
+    }, [page, filteredRequests]);
+
+    // Scroll to top when page changes
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [page]);
 
     const getDistrictName = (id) => {
         const d = districts.find(d => String(d.id) === String(id));
@@ -216,15 +241,20 @@ const DonationRequests = () => {
 
                 {/* Count Display */}
                 <div className="mb-4 text-lg font-bold text-gray-700">
-                    {requests.length > 0 
-                        ? `${requests.length} ${requests.length === 1 ? 'request' : 'requests'} found`
-                        : 'No requests found'
-                    }
+                    {filteredRequests.length > 0 ? (
+                        (() => {
+                            const startIdx = (page - 1) * CARDS_PER_PAGE + 1;
+                            const endIdx = Math.min(page * CARDS_PER_PAGE, filteredRequests.length);
+                            return `Showing ${startIdx} to ${endIdx} of ${filteredRequests.length} requests`;
+                        })()
+                    ) : (
+                        'No requests found'
+                    )}
                 </div>
 
-                {requests.length > 0 ? (
+                {currentPageRequests.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {requests.map((req) => (
+                        {currentPageRequests.map((req) => (
                             <div
                                 key={req._id}
                                 className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
@@ -288,6 +318,35 @@ const DonationRequests = () => {
                                 ? "No donation requests found matching your search criteria." 
                                 : "No pending donation requests at the moment."}
                         </p>
+                    </div>
+                )}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="flex justify-center gap-2 mt-10">
+                        <button
+                            disabled={page === 1}
+                            onClick={() => setPage(page - 1)}
+                            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50 transition-colors"
+                        >
+                            Prev
+                        </button>
+                        {[...Array(totalPages).keys()].map((num) => (
+                            <button
+                                key={num}
+                                onClick={() => setPage(num + 1)}
+                                className={`px-3 py-1 border rounded hover:bg-gray-50 transition-colors ${page === num + 1 ? "bg-red-600 text-white hover:bg-red-700" : ""}`}
+                            >
+                                {num + 1}
+                            </button>
+                        ))}
+                        <button
+                            disabled={page === totalPages}
+                            onClick={() => setPage(page + 1)}
+                            className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50 transition-colors"
+                        >
+                            Next
+                        </button>
                     </div>
                 )}
             </div>

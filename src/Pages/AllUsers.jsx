@@ -175,10 +175,17 @@ const AllUsers = () => {
 
             {/* Count Display */}
             <div className="mb-4 text-lg font-bold text-gray-700">
-                {users.length > 0 
-                    ? `${users.length} ${users.length === 1 ? 'user' : 'users'} found`
-                    : 'No users found'
-                }
+                {users.length > 0 ? (
+                    (() => {
+                        const startIdx = (page - 1) * LIMIT + 1;
+                        const endIdx = Math.min(page * LIMIT, users.length);
+                        // If searching, show filtered count, otherwise show server total
+                        const totalCount = searchQuery.trim() ? users.length : total;
+                        return `Showing ${startIdx} to ${endIdx} of ${totalCount} users`;
+                    })()
+                ) : (
+                    'No users found'
+                )}
             </div>
 
             {/* Table */}
