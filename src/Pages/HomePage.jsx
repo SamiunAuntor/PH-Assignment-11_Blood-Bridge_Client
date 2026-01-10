@@ -6,6 +6,7 @@ import ContactUsSection from '../Components/ContactUsSection';
 import FeaturedSection from '../Components/FeaturedSection';
 import WhatOurUsersSay from '../Components/WhatOurUsersSay';
 import Featured from '../Components/Featured';
+import StatsSection from '../Components/StatsSection';
 
 
 
@@ -39,6 +40,7 @@ const HomePage = () => {
     return (
         <div className='min-h-screen'>
             <Banner></Banner>
+            <StatsSection></StatsSection>
             <Featured></Featured>
             <FeaturedSection></FeaturedSection>
             <WhatOurUsersSay></WhatOurUsersSay>
