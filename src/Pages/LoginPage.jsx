@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import loginImage from "../assets/loginPhoto.jpg";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router";
 import useAuth from "../Hooks/useAuth";
 import { useForm } from "react-hook-form";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 import { ShieldCheck, Users, User as UserIcon } from "lucide-react";
 import { showToast } from "../Utilities/ToastMessage";
 import Loading from "../Components/Loading";
+import { getAuth } from "firebase/auth";
 
 
 const LoginPage = () => {
     const { loginUserWithEmailPassword, user, loading } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [showPass, setShowPass] = useState(false);
     const [quickLoginLoading, setQuickLoginLoading] = useState(false);
 
@@ -58,13 +60,20 @@ const LoginPage = () => {
         try {
             await loginUserWithEmailPassword(data.email, data.password);
 
+            // Get user from Firebase auth after login
+            const auth = getAuth();
+            const currentUser = auth.currentUser;
+            
             // Show toast with user's displayName
-            const name = user?.displayName || data.email.split("@")[0];
+            const name = currentUser?.displayName || data.email.split("@")[0];
             showToast(`Welcome back, ${name}!`, "success");
 
             // Reset loading state before navigation
             setQuickLoginLoading(false);
-            navigate("/"); // redirect to home page after login
+            
+            // Redirect to return URL if available, otherwise to home page
+            const from = location.state?.from || "/";
+            navigate(from, { replace: true });
         } catch (err) {
             showToast(getFriendlyErrorMessage(err), "error");
             setQuickLoginLoading(false);

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router";
+import { useParams, useNavigate, Link, useLocation } from "react-router";
 import useAxios from "../Hooks/useAxios";
 import useAuth from "../Hooks/useAuth";
 import Loading from "../Components/Loading";
-import ProtectedRoute from "../PrivateRoutes/ProtectedRoute";
 import { getAuth } from "firebase/auth";
 import Swal from "sweetalert2";
 import { MapPin, Calendar, Clock, Droplets, Hospital, MessageSquare, User } from "lucide-react";
@@ -11,6 +10,7 @@ import { MapPin, Calendar, Clock, Droplets, Hospital, MessageSquare, User } from
 const DonationRequestDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const axios = useAxios();
     const { user } = useAuth();
     const [request, setRequest] = useState(null);
@@ -47,8 +47,11 @@ const DonationRequestDetails = () => {
                 setLoading(true);
                 const auth = getAuth();
                 const token = await auth.currentUser?.getIdToken();
+                
+                // Make API call with optional authentication
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
                 const res = await axios.get(`/donation-request/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers,
                 });
                 setRequest(res.data.request);
             } catch (err) {
@@ -65,7 +68,10 @@ const DonationRequestDetails = () => {
 
     const handleDonate = async () => {
         if (!user) {
-            navigate("/login");
+            // Redirect to login with return URL
+            navigate("/login", { 
+                state: { from: location.pathname } 
+            });
             return;
         }
 
@@ -125,8 +131,7 @@ const DonationRequestDetails = () => {
     );
 
     return (
-        <ProtectedRoute>
-            <div className="min-h-screen bg-gradient-to-b from-red-50 to-white py-8 px-4 md:px-16">
+        <div className="min-h-screen bg-gradient-to-b from-red-50 to-white py-8 px-4 md:px-16">
 
                 <div className="space-y-6">
                     {/* Header */}
@@ -225,7 +230,16 @@ const DonationRequestDetails = () => {
                     {/* Donate Button */}
                     {request.status === "pending" && (
                         <button
-                            onClick={() => setShowModal(true)}
+                            onClick={() => {
+                                if (!user) {
+                                    // Redirect to login with return URL
+                                    navigate("/login", { 
+                                        state: { from: location.pathname } 
+                                    });
+                                } else {
+                                    setShowModal(true);
+                                }
+                            }}
                             className="w-full md:w-auto px-8 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
                         >
                             Donate Blood
@@ -277,7 +291,6 @@ const DonationRequestDetails = () => {
                     </div>
                 )}
             </div>
-        </ProtectedRoute>
     );
 };
 

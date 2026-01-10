@@ -51,7 +51,7 @@ const router = createBrowserRouter([
             },
             {
                 path: "donation-request/:id",
-                element: <ProtectedRoute><DonationRequestDetails></DonationRequestDetails></ProtectedRoute>,
+                element: <DonationRequestDetails></DonationRequestDetails>,
             },
             {
                 path: "funding",
