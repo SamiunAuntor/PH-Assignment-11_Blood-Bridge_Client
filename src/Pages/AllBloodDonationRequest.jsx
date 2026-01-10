@@ -253,15 +253,24 @@ const AllBloodDonationRequests = () => {
 
             {/* Count Display */}
             <div className="mb-4 text-lg font-bold text-gray-700">
-                {filteredRequests.length > 0 ? (
-                    (() => {
-                        const startIdx = (page - 1) * LIMIT + 1;
-                        const endIdx = Math.min(page * LIMIT, filteredRequests.length);
-                        return `Showing ${startIdx} to ${endIdx} of ${filteredRequests.length} requests`;
-                    })()
-                ) : (
-                    'No requests found'
-                )}
+                {(() => {
+                    // If search query exists, use filtered results (client-side filtering)
+                    // Otherwise, use total from server (all matching items across pages)
+                    const displayTotal = searchQuery.trim() ? filteredRequests.length : total;
+                    const displayRequests = searchQuery.trim() ? filteredRequests : requests;
+                    
+                    if (displayRequests.length > 0) {
+                        const startIdx = searchQuery.trim() 
+                            ? 1 
+                            : (page - 1) * LIMIT + 1;
+                        const endIdx = searchQuery.trim()
+                            ? filteredRequests.length
+                            : Math.min(page * LIMIT, total);
+                        return `Showing ${startIdx} to ${endIdx} of ${displayTotal} requests`;
+                    } else {
+                        return 'No requests found';
+                    }
+                })()}
             </div>
 
             {/* Table */}
