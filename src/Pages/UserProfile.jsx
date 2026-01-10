@@ -159,7 +159,7 @@ const UserProfile = () => {
 
                     <div className="relative">
                         <img
-                            src={formData.avatar || data.avatar || user?.photoURL || "https://i.ibb.co/HDxczbsV/My-Profile.png"}
+                            src={formData.avatar || data.avatar || user?.photoURL || "https://i.ibb.co/Y71cMmLF/random-avatar.png"}
                             alt="Profile"
                             className="w-32 h-32 md:w-40 md:h-40 rounded-2xl object-cover object-top border-4 border-white shadow-2xl"
                         />
