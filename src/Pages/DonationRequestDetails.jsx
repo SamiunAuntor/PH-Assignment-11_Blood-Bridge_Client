@@ -6,7 +6,7 @@ import Loading from "../Components/Loading";
 import ProtectedRoute from "../PrivateRoutes/ProtectedRoute";
 import { getAuth } from "firebase/auth";
 import Swal from "sweetalert2";
-import { MapPin, Calendar, Clock, Droplets, Hospital, MessageSquare, User } from "lucide-react"; // Mail removed
+import { MapPin, Calendar, Clock, Droplets, Hospital, MessageSquare, User } from "lucide-react";
 
 const DonationRequestDetails = () => {
     const { id } = useParams();
