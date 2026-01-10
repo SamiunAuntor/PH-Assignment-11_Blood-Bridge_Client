@@ -13,7 +13,11 @@ const Funding = () => {
     const [amount, setAmount] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [totalFunding, setTotalFunding] = useState(0);
-    
+
+    // Ensure we are on top after redirected to this page
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     useEffect(() => {
         // Dummy data for payment, will be implemented later
@@ -69,7 +73,7 @@ const Funding = () => {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-8 pb-12">
+            <div className="min-h-screen bg-gray-50 py-8 pb-12">
                 <div className="w-11/12 mx-auto">
                     <div className="flex flex-col md:flex-row justify-between items-center mb-8">
                         <div>

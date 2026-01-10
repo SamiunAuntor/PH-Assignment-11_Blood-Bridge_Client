@@ -153,19 +153,21 @@ const DonationRequests = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-8 pb-12">
+        <div className="min-h-screen bg-gray-50 py-12">
             <div className="w-11/12 mx-auto">
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl md:text-4xl font-bold text-red-600 mb-2">
+                <div className="text-center mb-10">
+                    <h1 className="text-3xl md:text-4xl font-bold text-red-600 mb-4">
                         Blood Donation Requests
                     </h1>
-                    <p className="text-gray-600">Help save lives by responding to these urgent requests</p>
+                    <p className="text-gray-600 text-lg">
+                        Help save lives by responding to these urgent requests
+                    </p>
                 </div>
 
                 {/* Search and Filter Bar */}
-                <div className="mb-6 flex flex-col md:flex-row gap-4 items-center">
+                <div className="mb-10 flex flex-col md:flex-row md:justify-between md:items-center gap-6 items-center">
                     {/* Search Bar - Left */}
-                    <div className="flex-1 w-full md:w-auto">
+                    <div className="w-full md:w-[600px]">
                         <div className="relative">
                             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                             <input

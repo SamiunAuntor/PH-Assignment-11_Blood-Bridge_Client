@@ -27,10 +27,12 @@ const testimonials = [
 const WhatOurUsersSay = () => {
     return (
         <section className="py-12 bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 md:px-6">
-                <h2 className="text-3xl md:text-4xl font-bold text-center text-red-600 mb-10">
-                    What Our Users Say
-                </h2>
+            <div className="w-11/12 mx-auto">
+                <div className="text-center mb-10">
+                    <h2 className="text-3xl md:text-4xl font-bold text-red-600 mb-4">
+                        What Our Users Say
+                    </h2>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {testimonials.map((t, idx) => (

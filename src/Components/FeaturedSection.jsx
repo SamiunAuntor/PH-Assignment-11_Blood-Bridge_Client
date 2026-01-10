@@ -56,20 +56,20 @@ const features = [
 
 const FeaturedSection = () => {
     return (
-        <div className="w-full bg-white py-16 px-6 flex flex-col items-center">
+        <div className="w-full bg-white py-12 px-6 flex flex-col items-center">
 
             {/* Heading */}
-            <div className="max-w-4xl mx-auto text-center mb-12">
+            <div className="w-[95%] mx-auto text-center mb-10">
                 <h2 className="text-3xl md:text-4xl font-bold text-red-600 mb-4">
                     Why Choose BloodBridge?
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-gray-600 text-lg">
                     Discover the tools and features that make BloodBridge reliable and fast.
                 </p>
             </div>
 
             {/* Marquee Wrapper */}
-            <div className="w-full mx-auto">
+            <div className="w-[95%] mx-auto">
                 <Marquee pauseOnHover={true} speed={50} gradient={false} className="py-4">
 
                     {features.map((item, idx) => (

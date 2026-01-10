@@ -20,6 +20,11 @@ const DonationRequestDetails = () => {
     const [districts, setDistricts] = useState([]);
     const [upzillas, setUpzillas] = useState([]);
 
+    // Ensure we are on top after redirected to this page
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [id]);
+
     useEffect(() => {
         const loadLocations = async () => {
             try {

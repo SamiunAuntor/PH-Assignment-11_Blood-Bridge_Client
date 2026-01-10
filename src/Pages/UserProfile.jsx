@@ -15,6 +15,11 @@ const UserProfile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
 
+    // Ensure we are on top after redirected to this page
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     const [divisions, setDivisions] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [upzillas, setUpzillas] = useState([]);

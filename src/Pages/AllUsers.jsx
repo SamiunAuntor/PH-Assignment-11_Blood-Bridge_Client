@@ -11,6 +11,11 @@ const AllUsers = () => {
     const axios = useAxios();
     const { user } = useAuth();
 
+    // Ensure we are on top after redirected to this page
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     const [users, setUsers] = useState([]);
     const [status, setStatus] = useState("");
     const [page, setPage] = useState(1);

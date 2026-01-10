@@ -10,21 +10,21 @@ const ContactUsSection = () => {
     };
 
     return (
-        <div className="w-full bg-white py-16 px-6">
+        <div className="w-full bg-white py-12 px-6">
 
             {/* Heading */}
-            <div className="max-w-3xl mx-auto text-center">
-                <h2 className="text-3xl md:text-4xl font-extrabold text-red-600 mb-6">
+            <div className="w-11/12 mx-auto text-center mb-10">
+                <h2 className="text-3xl md:text-4xl font-bold text-red-600 mb-4">
                     Contact Us
                 </h2>
-                <p className="text-gray-600 mb-10">
+                <p className="text-gray-600 text-lg">
                     Have questions or need support? Reach out to us anytime.
-                    We’re here to help you save lives.
+                    We're here to help you save lives.
                 </p>
             </div>
 
             {/* Contact Card */}
-            <div className="max-w-3xl mx-auto bg-red-100 shadow-xl rounded-2xl p-8">
+            <div className="w-11/12 mx-auto bg-red-100 shadow-xl rounded-2xl p-8">
 
                 {/* Phone */}
                 <div className="text-center mb-8">

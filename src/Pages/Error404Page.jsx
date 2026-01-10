@@ -1,9 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import errorImage from "../assets/404.jpg";
 
 const Error404Page = () => {
     const navigate = useNavigate();
+
+    // Ensure we are on top after redirected to this page
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     return (
         <div className="flex flex-col items-center min-h-screen">

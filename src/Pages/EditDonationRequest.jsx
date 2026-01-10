@@ -15,6 +15,11 @@ const EditDonationRequest = () => {
     const { user, loading } = useAuth();
     const [requestLoading, setRequestLoading] = useState(true);
 
+    // Ensure we are on top after redirected to this page
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [id]);
+
     const [divisions, setDivisions] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [upazilas, setUpazilas] = useState([]);

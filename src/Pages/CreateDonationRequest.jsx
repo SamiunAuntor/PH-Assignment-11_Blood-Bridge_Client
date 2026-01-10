@@ -9,6 +9,11 @@ const CreateDonationRequest = () => {
     const { register, handleSubmit, watch, reset, setValue } = useForm();
     const { user, loading } = useAuth();
 
+    // Ensure we are on top after redirected to this page
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     const [divisions, setDivisions] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [upazilas, setUpazilas] = useState([]);

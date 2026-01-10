@@ -8,6 +8,7 @@ import { IoMdCreate } from "react-icons/io";
 import useRole from "../Hooks/useRole";
 import Loading from "../Components/Loading";
 import useAuth from "../Hooks/useAuth";
+import ScrollToTop from "../Components/ScrollToTop";
 
 const DashboardLayout = () => {
     const { role, isLoading } = useRole();
@@ -37,6 +38,7 @@ const DashboardLayout = () => {
 
     return (
         <div className="flex min-h-screen bg-gray-100">
+            <ScrollToTop />
 
             {/* Sidebar */}
             <aside className="w-16 md:w-20 bg-red-600 text-white flex flex-col items-center py-4 gap-4 shadow-lg">

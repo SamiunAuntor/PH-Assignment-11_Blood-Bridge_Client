@@ -179,6 +179,11 @@ const DashboardHome = () => {
     const axios = useAxios();
     const navigate = useNavigate();
 
+    // Ensure we are on top after redirected to this page
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     const [recentRequests, setRecentRequests] = useState([]);
     const [stats, setStats] = useState({
         totalUsers: 0,
