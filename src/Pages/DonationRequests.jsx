@@ -67,7 +67,7 @@ const DonationRequests = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-8">
+        <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-8 pb-12">
             <div className="w-11/12 mx-auto">
                 <div className="text-center mb-8">
                     <h1 className="text-3xl md:text-4xl font-bold text-red-600 mb-2">

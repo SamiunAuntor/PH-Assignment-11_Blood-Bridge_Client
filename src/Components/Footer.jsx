@@ -8,7 +8,7 @@ const Footer = () => {
     const year = new Date().getFullYear();
 
     return (
-        <footer className="bg-red-100 text-gray-800 shadow-xl mt-12">
+        <footer className="bg-red-100 text-gray-800 shadow-xl">
             <div className="w-11/12 mx-auto py-10">
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10">
 
@@ -43,6 +43,7 @@ const Footer = () => {
                         <h3 className="font-semibold text-lg mb-3 text-red-700">Useful Links</h3>
                         <ul className="space-y-2 text-gray-700">
                             <li><Link to="/" className="hover:text-red-600 transition">Home</Link></li>
+                            <li><Link to="/about" className="hover:text-red-600 transition">About Us</Link></li>
                             <li><Link to="/donation-requests" className="hover:text-red-600 transition">Donation Requests</Link></li>
                             <li><Link to="/funding" className="hover:text-red-600 transition">Funding</Link></li>
                             <li><Link to="/search" className="hover:text-red-600 transition">Search Donors</Link></li>
