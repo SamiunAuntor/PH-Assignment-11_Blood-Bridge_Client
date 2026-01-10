@@ -221,6 +221,7 @@ const DashboardHome = () => {
     /* Fetch Data */
     const fetchData = async () => {
         if (!user || !role || districts.length === 0) return;
+        const startTime = Date.now();
         setLoadingData(true);
 
         try {
@@ -270,7 +271,11 @@ const DashboardHome = () => {
         } catch (err) {
             console.error(err);
         } finally {
-            setLoadingData(false);
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, 400 - elapsedTime);
+            setTimeout(() => {
+                setLoadingData(false);
+            }, remainingTime);
         }
     };
 

@@ -21,6 +21,7 @@ const Funding = () => {
 
     useEffect(() => {
         // Dummy data for payment, will be implemented later
+        const startTime = Date.now();
         setLoading(true);
         const dummyFundings = [
             { _id: "1", userName: "John Doe", amount: 500, date: new Date().toISOString() },
@@ -30,7 +31,11 @@ const Funding = () => {
         ];
         setFundings(dummyFundings);
         setTotalFunding(dummyFundings.reduce((sum, f) => sum + f.amount, 0));
-        setLoading(false);
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, 400 - elapsedTime);
+        setTimeout(() => {
+            setLoading(false);
+        }, remainingTime);
     }, []);
 
     const handleDonate = async (e) => {

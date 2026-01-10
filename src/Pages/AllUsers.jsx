@@ -25,6 +25,7 @@ const AllUsers = () => {
     const totalPages = Math.ceil(total / LIMIT);
 
     const fetchUsers = async () => {
+        const startTime = Date.now();
         setLoading(true);
         try {
             const token = await getAuth().currentUser.getIdToken();
@@ -38,7 +39,11 @@ const AllUsers = () => {
             console.error(err);
             Swal.fire("Error", "Failed to load users", "error");
         } finally {
-            setLoading(false);
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, 400 - elapsedTime);
+            setTimeout(() => {
+                setLoading(false);
+            }, remainingTime);
         }
     };
 

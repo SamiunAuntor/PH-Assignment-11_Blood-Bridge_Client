@@ -56,6 +56,7 @@ const AllBloodDonationRequests = () => {
         const fetchRequests = async () => {
             if (!user || !districts.length || !upzillas.length) return;
 
+            const startTime = Date.now();
             setLoading(true);
             try {
                 const token = await getAuth().currentUser.getIdToken();
@@ -81,7 +82,11 @@ const AllBloodDonationRequests = () => {
             } catch (err) {
                 console.error("Failed to fetch donation requests:", err);
             } finally {
-                setLoading(false);
+                const elapsedTime = Date.now() - startTime;
+                const remainingTime = Math.max(0, 400 - elapsedTime);
+                setTimeout(() => {
+                    setLoading(false);
+                }, remainingTime);
             }
         };
 

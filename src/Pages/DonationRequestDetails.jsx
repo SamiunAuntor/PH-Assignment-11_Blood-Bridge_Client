@@ -43,6 +43,7 @@ const DonationRequestDetails = () => {
 
     useEffect(() => {
         const fetchRequest = async () => {
+            const startTime = Date.now();
             try {
                 setLoading(true);
                 const auth = getAuth();
@@ -59,7 +60,11 @@ const DonationRequestDetails = () => {
                 Swal.fire("Error", "Failed to load donation request", "error");
                 navigate("/donation-requests");
             } finally {
-                setLoading(false);
+                const elapsedTime = Date.now() - startTime;
+                const remainingTime = Math.max(0, 400 - elapsedTime);
+                setTimeout(() => {
+                    setLoading(false);
+                }, remainingTime);
             }
         };
 

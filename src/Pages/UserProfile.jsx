@@ -23,6 +23,7 @@ const UserProfile = () => {
     const [divisions, setDivisions] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [upzillas, setUpzillas] = useState([]);
+    const [minimumLoading, setMinimumLoading] = useState(true);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -55,6 +56,19 @@ const UserProfile = () => {
         };
         fetchLocations();
     }, []);
+
+    // Ensure minimum loading time
+    useEffect(() => {
+        const startTime = Date.now();
+        const timer = setTimeout(() => {
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, 400 - elapsedTime);
+            setTimeout(() => {
+                setMinimumLoading(false);
+            }, remainingTime);
+        }, 100);
+        return () => clearTimeout(timer);
+    }, [user]);
 
     // Fetch profile data
     const { data, isLoading: profileLoading, error } = useQuery(
@@ -134,7 +148,7 @@ const UserProfile = () => {
         setIsEditing(false);
     };
 
-    if (loading || profileLoading) return <div className="flex items-center justify-center min-h-screen">
+    if (loading || profileLoading || minimumLoading) return <div className="flex items-center justify-center min-h-screen">
         <Loading />
     </div>;
     if (error || !data) return <div className="p-20 text-center text-red-500">Error loading profile details.</div>;
